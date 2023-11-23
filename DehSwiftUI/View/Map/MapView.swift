@@ -40,6 +40,7 @@ struct DEHMap: View {
                     pin(xoi: xoi, selection: $selection)
                 }
             }
+            
             .navigationBarItems(trailing:HStack{
                 Button {
                     filterState = true
@@ -56,9 +57,8 @@ struct DEHMap: View {
                 Button(action: {
                     print("map_locate tapped")
                     selectSearchXOI = true
-                }
-                ) {
-                    Image("location")
+                }) {
+                    Image("map_filter")
                         .foregroundColor(.blue)
                 }
                 .actionSheet(isPresented: $selectSearchXOI) {
@@ -71,7 +71,8 @@ struct DEHMap: View {
                     }
                     else {
                         return ActionSheet(title: Text("Select Search XOIs"), message: Text(""), buttons: [
-                            .default(Text("POI".localized)) { searchXOIs(action: "searchNearbyPOI"); POIselected = true },
+                            .default(Text("POI".localized)) { searchXOIs(action: "searchNearbyPOI"); POIselected = true
+                            },
                             .default(Text("LOI".localized)) { searchXOIs(action: "searchNearbyLOI") },
                             .default(Text("AOI".localized)) { searchXOIs(action: "searchNearbyAOI") },
                             .default(Text("SOI".localized)) { searchXOIs(action: "searchNearbySOI") },
@@ -102,12 +103,12 @@ struct DEHMap: View {
                             }
                             .padding(.leading, 10.0)
                             Spacer()
-                            Button(action: {
-                                print("alert tapped")
-                            }) {
-                                Image("alert")
-                            }
-                            .padding(.trailing, 10.0)
+//                            Button(action: {
+//                                print("alert tapped")
+//                            }) {
+//                                Image("alert")
+//                            }
+//                            .padding(.trailing, 10.0)
                         }
                         .padding(.bottom,30.0)
                     }
@@ -118,7 +119,8 @@ struct DEHMap: View {
             }
         }
         .onAppear {
-            if settingStorage.XOIs["nearby"] != [] && settingStorage.mapType == "nearby" && POIselected == true{
+            if settingStorage.XOIs["nearby"] != []{
+//            if settingStorage.XOIs["nearby"] != [] && settingStorage.mapType == "nearby" && POIselected == true{
                 showFilterButton = false
             }
         }
@@ -174,7 +176,9 @@ struct pin:View{
     @State var showTitle = true
     let mapping = ["user":"player_pin","expert":"expert_pin","docent":"docent_pin"]
     var body: some View {
+        
         VStack(spacing:0){
+            
             Button {
                 self.selection = settingStorage.XOIs[settingStorage.mapType]?.firstIndex(of: xoi)
             } label: {

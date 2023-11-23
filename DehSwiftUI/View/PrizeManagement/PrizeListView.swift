@@ -69,5 +69,6 @@ extension PrizeListView {
 struct PrizeListView_Previews: PreviewProvider {
     static var previews: some View {
         PrizeListView()
+            .environmentObject(SettingStorage())
     }
 }

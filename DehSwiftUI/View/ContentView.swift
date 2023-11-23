@@ -91,24 +91,37 @@ struct ContentView: View {
     //若使用classModel的值則必須使用observation pattern
     //https://stackoverflow.com/questions/60744017/how-do-i-update-a-text-label-in-swiftui
     @State var selection: Int? = nil
+
     var body: some View {
         ZStack {
             NavigationView {
-                VStack(spacing: 0){
+                VStack(spacing: .infinity){
                     TabView{
-                        TabViewElement(title: "My Favorite".localized, image1: "Empty", image2: "Empty",tabItemImage: "member_favorite",tabItemName: "favorite")
-                        TabViewElement(title: "Searched Xois".localized, image1: "Empty", image2: "Empty",tabItemImage:"member_searched",tabItemName: "nearby")
-                        if isMini() {
-                            TabViewElement(title: "Group Interests".localized, image1: "member_grouplist", image2: "search",tabItemImage:"member_group",tabItemName:"group")
-                            TabViewElement(title: "My Xois".localized, image1: "Empty", image2: "search",tabItemImage:"member_interests",tabItemName:"mine")
-                            TabViewElement(title: "Region Interests".localized, image1: "member_regionlist", image2: "search",tabItemImage:"member_group",tabItemName:"region")
+                        NearbyView().tabItem{
+                            Image("member_nearby")
+                            Text("nearby".localized)
                         }
+//                        FavoriteView().tabItem{
+//                            Image("member_marked")
+//                            Text("My Favorite".localized)
+//                        }
                         
-                        if isLite() {
-                            TabViewElement(title: "Region Interests".localized, image1: "member_regionlist", image2: "search",tabItemImage:"member_group",tabItemName:"region")
+                        TabViewElement(title: "My Favorite".localized, image1: "Empty", image2: "Empty",tabItemImage: "member_marked",tabItemName: "favorite")
+                        
+                        if isMini() {
+                            TabViewElement(title: "Group Interests".localized, image1: "member_grouplist", image2: "member_funnel",tabItemImage:"member_grup",tabItemName:"group")
+                            
+                            
+                        }
+                        TabViewElement(title: "Region Interests".localized, image1: "member_regionlist", image2: "member_funnel",tabItemImage:"member_grups",tabItemName:"region")
+                        if isMini() {
+                            TabViewElement(title: "My Xois".localized, image1: "Empty", image2: "member_funnel",tabItemImage:"member_personal",tabItemName:"mine")
+                            
                         }
                         
                     }
+                    .accentColor(.black)
+                    
                 }
                 .navigationBarTitle(Text("HI ".localized +  self.settingStorage.account), displayMode: .inline)
                 .navigationBarItems(leading: HStack {

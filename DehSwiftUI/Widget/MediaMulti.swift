@@ -36,10 +36,11 @@ class MediaMulti {
             Button(action: {
                 Sounds.playSounds(soundData: self.data)
             }, label: {
-                Image("audio_picture")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(minWidth: 0, maxWidth: .infinity, maxHeight: 400)
+                Image("audio_button")
+//                    .resizable()
+//                    .scaledToFill()
+//                    .frame(minWidth: 0, maxWidth: .infinity, maxHeight: 400)
+//                    .offset(y:50)
             })
         case .Video:
             VideoPlayer(player:player)

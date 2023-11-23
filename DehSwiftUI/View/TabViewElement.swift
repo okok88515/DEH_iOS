@@ -9,6 +9,7 @@
 import SwiftUI
 import Combine
 import Alamofire
+import MapKit
 
 struct TabViewElement: View {
     @State var title: String
@@ -21,17 +22,40 @@ struct TabViewElement: View {
     @ObservedObject var xoiViewModel = XOIViewModel()
     @EnvironmentObject var settingStorage:SettingStorage
     @ObservedObject var locationManager = LocationManager()
+    @State var coordinateRegion: MKCoordinateRegion = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 22.997, longitude: 120.221),
+        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+    )
     @State var selectSearchXOI = false
     @State private var cancellable: AnyCancellable?
     @State var group = Group(id: 0, name: "-111", leaderId: 0, info: "")
     @State var region = Field(id: 0, name: "-111", info: "")
     @State var selectOverState:Bool = false
     @State var exitRegionState:Bool = false
+    @State var selection: Int? = nil
+    @State var POIselected = false
+    //left list default hide
+    @State var hide_listState = true
+    var sideBarWidth = UIScreen.main.bounds.size.width * 0.7
     var body: some View {
         VStack{
             HStack{
+                //left list button
+                Button{
+                    if hide_listState{
+                        hide_listState = false
+                    }
+                    else{
+                        hide_listState = true
+                    }
+                }label: {
+                    Image("member_grouplist")
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                }
                 Text(title)
                     .onAppear{
+                        hide_listState = true
                         if(group.name != "-111"){
                             title = group.name
                         }
@@ -41,16 +65,29 @@ struct TabViewElement: View {
                     }
                     .foregroundColor(Color.white)
                 Spacer()
+                
+//                if (image1 == "member_smap"){
+//                    NavigationLink(tag: 5, selection: $selection, destination: {DEHMap()}) {
+//                        Button{
+//                            print("map tapped")
+//                            self.selection = 5
+//                        } label: {
+//                            Image("member_smap")
+//
+//                        }
+//                    }
+//
+//                }
                 //this will cause an warning but no idea about it
-                if (image1 == "member_grouplist"){
+                if (image1 == "member_grouplist" ){
                     NavigationLink(destination: GroupList(group: $group)) {
                         Image(image1)
                     }
                 }
                 //remember to design a icon for member_regionlist date:0302
                 if (image1 == "member_regionlist" && selectOverState == false){
-                    NavigationLink(destination: BeginView(selectOverState: $selectOverState,region: $region)) {
-                        Image("member_grouplist")
+                    NavigationLink(destination: RegionView(selectOverState: $selectOverState,region: $region)) {
+                        Image("member_search")
                     }
                 }
                 if (image1 == "member_regionlist" && selectOverState == true){
@@ -59,7 +96,7 @@ struct TabViewElement: View {
                         //                        print(exitRegionState)
                     }
                     label:{
-                        Image("cross_w")
+                        Image("member_x")
                             .resizable()
                             .frame(width:20, height:20)
                     }
@@ -113,17 +150,77 @@ struct TabViewElement: View {
                 .actionSheet(isPresented: $selectSearchXOI) {
                     actionSheetBuilder(tabItemName:tabItemName)
                 }
-            }
-            .padding([.top, .leading, .trailing])
-            List{
-                ForEach(self.settingStorage.XOIs[tabItemName] ?? []){xoi in
-                    XOIRow(xoi:xoi,tabItemName:tabItemName)
-                        .padding(.horizontal)
-                }
-                .listRowBackground(Color.init(UIColor(rgba: darkGreen)))
                 
             }
+            //.frame(height:20)
+            .padding([.top, .leading, .trailing])
+            
+            ZStack {
+                //also show nearby xoi pin in the list
+                //DEHMap()
+                Map(coordinateRegion: $locationManager.coordinateRegion, annotationItems: settingStorage.XOIs[settingStorage.mapType] ?? []){xoi in
+                    MapAnnotation(
+                        coordinate: xoi.coordinate,
+                        anchorPoint: CGPoint(x: 0.5, y: 0.5)
+                    ) {
+                        NavigationLink("", tag: settingStorage.XOIs[settingStorage.mapType]?.firstIndex(of: xoi) ?? 0, selection: $selection, destination: {destinationSelector(xoi:xoi)})
+                        pin(xoi: xoi, selection: $selection)
+                    }
+                }
+                .onTapGesture {
+                    if !hide_listState{
+                        hide_listState = true
+                    }
+                }.overlay(
+                    ZStack{
+                        VStack{
+                            Spacer()
+                            HStack{
+                                Spacer()
+                                Image("sniper_target")
+                                Spacer()
+                            }
+                            Spacer()
+                        }
+                        VStack{
+                            Spacer()
+                            HStack{
+                                Button(action: {
+                                    print("gps tapped")
+                                    locationManager.updateLocation()
+                                }) {
+                                    Image("gps")
+                                }
+                                .padding(.leading, 10.0)
+                                Spacer()
+    //                            Button(action: {
+    //                                print("alert tapped")
+    //                            }) {
+    //                                Image("alert")
+    //                            }
+    //                            .padding(.trailing, 10.0)
+                            }
+                            .padding(.bottom,30.0)
+                        }
+                    }
+                )
+                
+                List{
+                    
+                    ForEach(self.settingStorage.XOIs[tabItemName] ?? []){xoi in
+                        XOIRow(xoi:xoi,tabItemName:tabItemName)
+                            .padding(.horizontal)
+                    }
+                    .listRowBackground(Color.init(UIColor(rgba: darkGreen)))
+                    
+                }
+                .frame(width:sideBarWidth)
+                .offset(x:-sideBarWidth/3)
+                .disabled(hide_listState)
+                .hidden(hide_listState)
+            }
         }
+        
         .background(Color.init(UIColor(rgba: lightGreen)))
         .alert(isPresented: $alertState) { () -> Alert in
             return Alert(title: Text(alertString),
@@ -133,15 +230,24 @@ struct TabViewElement: View {
             Image(tabItemImage)
             Text(tabItemName.localized)
                 .foregroundColor(.white)
+            
         }
+        
+
     }
     
 }
 extension TabViewElement{
     func searchXOIs(action:String){
         print("User icon pressed...")
+        
         if (group.id == 0) && (tabItemName == "group") {
             alertString = "please choose group".localized
+            alertState = true
+            return
+        }
+        if (settingStorage.XOIs["nearby"] == []) && (tabItemName == "nearby") {
+            alertString = "No data".localized
             alertState = true
             return
         }
@@ -170,6 +276,7 @@ extension TabViewElement{
                 if  xois != [] {
                     self.settingStorage.XOIs[tabItemName] = xois
                     self.settingStorage.mapType = tabItemName
+                    hide_listState = false
                 }
                 else {
                     alertString = "No Data".localized
@@ -203,7 +310,18 @@ extension TabViewElement{
                 .cancel()
             ])
         }
-        else{
+        //maybe need favorite view since favorite would be miss
+//        else if(tabItemName == "favorite"){
+//            return ActionSheet(title: Text("Select Search XOIs"), message: Text(""), buttons: [
+//                .default(Text("POI")) { self.settingStorage.XOIs = self.settingStorage.XOIs["favorite"]?[0].xoiCategory == ["poi"]  },
+//                .default(Text("LOI")) { let _ = print( self.settingStorage.XOIs["favorite"]?[0].xoiCategory==["loi"]) },
+//                .default(Text("AOI")) { let _ = print( self.settingStorage.XOIs["favorite"]?[0].xoiCategory==["aoi"]) },
+//                .default(Text("SOI")) { let _ = print( self.settingStorage.XOIs["favorite"]?[0].xoiCategory==["soi"]) },
+//                .cancel()
+//            ])
+//        }
+        
+        else {
             return ActionSheet(title: Text("Select Search XOIs"), message: Text(""), buttons: [
                 .default(Text("POI")) { searchXOIs(action: "searchMyPOI") },
                 .default(Text("LOI")) { searchXOIs(action: "searchMyLOI") },
@@ -213,12 +331,24 @@ extension TabViewElement{
             ])
         }
     }
+    @ViewBuilder func destinationSelector(xoi:XOI) -> some View{
+        switch xoi.xoiCategory {
+        case "poi": XOIDetail(xoi:xoi)
+        case "loi": DEHMapInner(Xoi: xoi, xoiCategory: xoi.xoiCategory)
+        case "aoi": DEHMapInner(Xoi: xoi, xoiCategory: xoi.xoiCategory)
+        case "soi": DEHMapInner(Xoi: xoi, xoiCategory: xoi.xoiCategory)
+        default:
+            Text("error")
+        }
+    }
+    
 }
+
 
 
 struct TabViewElement_Previews: PreviewProvider {
     static var previews: some View {
-        TabViewElement(title: "page2", image1: "member_grouplist", image2: "search",tabItemImage: "member_favorite",tabItemName: "favorite")
+        TabViewElement(title: "page2", image1: "member_regionlist", image2: "member_funnel",tabItemImage: "member_favorite",tabItemName: "favorirte")
             .environmentObject(SettingStorage())
     }
 }

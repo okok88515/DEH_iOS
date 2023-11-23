@@ -263,7 +263,6 @@ extension GroupDetailView {
 struct GroupDetailView_Previews: PreviewProvider {
     static var previews: some View {
         GroupDetailView(Group(id: -1, name: "", leaderId: -1, info: ""))
+            .environmentObject(SettingStorage())
     }
 }
-
-

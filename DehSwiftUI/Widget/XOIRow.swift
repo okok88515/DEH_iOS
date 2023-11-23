@@ -11,7 +11,9 @@ import SwiftUI
 struct XOIRow: View {
     var xoi: XOI
     var tabItemName:String
+    var show:Bool = true
     var body: some View {
+        
         ZStack{
             NavigationLink(destination:  XOIDetail(xoi:xoi, secondimage: secondImage(xoi.creatorCategory.checkImageExist(defaultPic: "none")))){
                 HStack{
@@ -19,6 +21,7 @@ struct XOIRow: View {
                     Image(secondImage(xoi.creatorCategory.checkImageExist(defaultPic: "none")))
     //                多媒體處理尚未解決
                     Image(xoi.mediaCategory.checkImageExist(defaultPic: "none"))
+                        
                     Text(xoi.name)
                         .foregroundColor(Color.white)
                         .allowsTightening(true)

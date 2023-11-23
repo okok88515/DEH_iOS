@@ -74,5 +74,6 @@ extension GameMemberPoint{
 struct GameMemberPoint_Previews: PreviewProvider {
     static var previews: some View {
         GameMemberPoint()
+            .environmentObject(SettingStorage())
     }
 }

@@ -94,6 +94,7 @@ struct GroupNameList:Decodable{
 struct GroupSearchView_Previews: PreviewProvider {
     static var previews: some View {
         GroupSearchView()
+            .environmentObject(SettingStorage())
     }
 }
 

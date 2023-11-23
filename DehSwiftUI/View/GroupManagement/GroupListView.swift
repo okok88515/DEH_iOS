@@ -142,5 +142,6 @@ private class GroupsViewModel: ObservableObject {
 struct GroupManagement_Previews: PreviewProvider {
     static var previews: some View {
         GroupListView()
+            .environmentObject(SettingStorage())
     }
 }

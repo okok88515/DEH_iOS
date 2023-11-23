@@ -56,7 +56,8 @@ struct Setting: View {
             
             Section(header: Text("Search Number".localized).foregroundColor(.blue)){
                 HStack{
-                    Slider(value: $searchNumber,in: 10.0...500.0,step:5.0)
+                    Text("10")
+                    Slider(value: $searchNumber,in: 10.0...100.0,step:5.0)
                     Spacer()
                     TextField("Number", value: $searchNumber, formatter: numberFormatter)
                         .frame(width: 35)
@@ -64,7 +65,7 @@ struct Setting: View {
                         .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.gray))
 //                        .padding([.horizontal], 20)
                         .multilineTextAlignment(.center)
-                    Text("        ")
+                    Text("100")
                     
 //                    Text("\(searchNumber, specifier: "%.0f")")
                 }

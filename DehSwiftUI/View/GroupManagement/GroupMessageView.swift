@@ -114,5 +114,6 @@ class GroupNotificationList:Decodable {
 struct GroupMessageView_Previews: PreviewProvider {
     static var previews: some View {
         GroupMessageView()
+            .environmentObject(SettingStorage())
     }
 }
