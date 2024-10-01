@@ -23,7 +23,10 @@ class SessionModel:Decodable,Hashable,Identifiable{
     enum CodingKeys: String, CodingKey{
         case id
         case name = "room_name"
+        //is_playing is "id" in the [EventHistory]
         case gameID = "is_playing"
+      
+
         case status
     }
     func hash(into hasher: inout Hasher) {

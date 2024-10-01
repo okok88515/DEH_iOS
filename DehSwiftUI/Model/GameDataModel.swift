@@ -10,20 +10,21 @@ import Foundation
 
 class GameData:Decodable{
     var start_time:String
-    var end_time:Int
+    var end_time:String
     var play_time:Int
     var room_id:Int
     var id:Int
     enum CodingKeys: String, CodingKey{
         case id = "id"
-        case room_id = "room_id_id"
+        //case room_id = "room_id_id"
+        case room_id = "event_id_id"
         case start_time = "start_time"
         case end_time = "end_time"
         case play_time = "play_time"
     }
     init() {
         start_time = ""
-        end_time = -1
+        end_time = ""
         play_time = 0
         room_id = -1
         id = -1

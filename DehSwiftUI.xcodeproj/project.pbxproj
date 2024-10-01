@@ -1666,7 +1666,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.8;
+				MARKETING_VERSION = 3.9;
 				OTHER_SWIFT_FLAGS = "-DDEHMICRO";
 				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.deh-micro";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1691,7 +1691,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.8;
+				MARKETING_VERSION = 3.9;
 				OTHER_SWIFT_FLAGS = "-DDEHMICRO";
 				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.deh-micro";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1716,7 +1716,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8;
+				MARKETING_VERSION = 1.9;
 				OTHER_SWIFT_FLAGS = "-DSDC";
 				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.SDC.DEH-Mini-II";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1741,7 +1741,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8;
+				MARKETING_VERSION = 1.9;
 				OTHER_SWIFT_FLAGS = "-DSDC";
 				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.SDC.DEH-Mini-II";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1766,7 +1766,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.8;
+				MARKETING_VERSION = 3.9;
 				OTHER_SWIFT_FLAGS = "-DSDCLITE";
 				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.SDC.DEH-Lite";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1791,7 +1791,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.8;
+				MARKETING_VERSION = 3.9;
 				OTHER_SWIFT_FLAGS = "-DSDCLITE";
 				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.SDC.DEH-Lite";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1816,7 +1816,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.8;
+				MARKETING_VERSION = 3.9;
 				OTHER_SWIFT_FLAGS = "-DSDCMICRO";
 				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.SDC.DEH-Micro";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1841,7 +1841,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.8;
+				MARKETING_VERSION = 3.9;
 				OTHER_SWIFT_FLAGS = "-DSDCMICRO";
 				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.SDC.DEH-Micro";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1866,9 +1866,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.8;
+				MARKETING_VERSION = 3.9;
 				OTHER_SWIFT_FLAGS = "-DDEHLITE";
-				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.deh-lite.test";
+				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.deh-lite";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1882,7 +1882,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"DehSwiftUI/Preview Content\"";
-				DEVELOPMENT_TEAM = 2NMHC9LP4C;
+				DEVELOPMENT_TEAM = 5H68PT52FM;
 				ENABLE_PREVIEWS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = "DEHLITE=1";
 				INFOPLIST_FILE = "DEH Mini II copy-Info.plist";
@@ -1891,9 +1891,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.8;
+				MARKETING_VERSION = 3.9;
 				OTHER_SWIFT_FLAGS = "-DDEHLITE";
-				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.deh-lite.test";
+				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.deh-lite";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1917,7 +1917,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8;
+				MARKETING_VERSION = 1.9;
 				OTHER_SWIFT_FLAGS = "-DDEH";
 				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.new-deh-mini-II";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1943,7 +1943,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8;
+				MARKETING_VERSION = 1.9;
 				OTHER_SWIFT_FLAGS = "-DDEH";
 				PRODUCT_BUNDLE_IDENTIFIER = "edu.NCKU.new-deh-mini-II";
 				PRODUCT_NAME = "$(TARGET_NAME)";

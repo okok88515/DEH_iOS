@@ -10,7 +10,7 @@ import SwiftUI
 import Alamofire
 import CryptoKit
 import Combine
-import simd
+//import simd
 // the personal entry is here
 #if SDC
 let coi = "sdc"
