@@ -6,6 +6,10 @@
 //  Copyright © 2022 mmlab. All rights reserved.
 //
 
+
+// variable gameID in many places actually refers to room_id
+// real room_id now is session.id = GameData.id
+// real gameid is  session.gameID = GameData.game_id (game_id_id)
 import Foundation
 import Alamofire
 import Combine
@@ -25,10 +29,11 @@ class GameViewModel:ObservableObject {
     @Published private var cancellable3: AnyCancellable?
     @Published private var startGameCancellable: AnyCancellable?
     
-    func startGame(session: SessionModel) {
+    func startGame(session: SessionModel,userID:String) {
         let url = GameStartUrl
         let parameters:[String:String] = [
             "room_id": "\(session.id)",
+            "user_id": userID
         ]
         let publisher:DataResponsePublisher<String> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         self.startGameCancellable = publisher
@@ -82,11 +87,12 @@ class GameViewModel:ObservableObject {
     }
     func initial(session:SessionModel,userID:String){
         //getGameData(gameID: session.gameID)
-        getGameData(gameID: session.id)
+        //getGameData(roomID: session.id)
+        getGameData(session: session)
         //getChests(session: session)
         //updateScore(userID: userID, gameID: session.gameID)
-        getChests(userID: userID, gameID: session.id)
-        updateScore(userID: userID, gameID: session.id)
+        getChests(userID: userID, session: session)
+        updateScore(userID: userID, session: session)
     }
 //    func getChests(session:SessionModel){
 //        let url = getChestList
@@ -106,15 +112,17 @@ class GameViewModel:ObservableObject {
  //           })
    // }
     
-    func getChests(userID:String, gameID:Int){
+    func getChests(userID:String,session: SessionModel){
         let url = getChestList
-        let parameters:[String:Any] = [ "user_id" : userID,
-                           "game_id" : gameID]
+        let parameters:[String:Any] = [
+            "user_id" : userID,
+            "room_id" :"\(session.id)"
+        ]
         let publisher:DataResponsePublisher<[ChestModel]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         self.cancellable = publisher
             .sink(receiveValue: {(values) in
 //                print(values.data?.JsonPrint())
-//                print(values.debugDescription)
+                print(values.debugDescription)
                 if let value = values.value {
                     self.chestList = value
                 }
@@ -124,13 +132,36 @@ class GameViewModel:ObservableObject {
     
     
     //get game remaining time
-    func getGameData(gameID:Int){
+    func getGameData(session: SessionModel){
         let url = getGameDataUrl
-        let parameters = ["game_id": gameID]
+        let parameters = ["room_id": session.id]
+        
+        print("session info")
+        print(session.id)
+        print(session.gameID)
+        print(session.name)
+        print(session.status)
         let publisher:DataResponsePublisher<[GameData]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+
         self.cancellable3 = publisher
             .sink(receiveValue: {(values) in
                 print(values.debugDescription)
+                
+                
+                
+                
+                if let gameData = values.value?.first {
+                    print("gamedata info")
+                    print(gameData.id)
+                    print(gameData.game_id)
+                    print(gameData.room_id
+                    )
+                    session.gameID = gameData.game_id
+                    print("session gameID after changing")
+                    print(session.gameID)
+                } else {
+                    print("No Game Data available.")
+                }
                //Count game remaining time
                 let formatter = DateFormatter()
 //              Time format in SQL
@@ -172,11 +203,11 @@ class GameViewModel:ObservableObject {
     
   
     
-    func updateScore(userID:String, gameID:Int) {
+    func updateScore(userID:String, session: SessionModel) {
         score = 0
         let url = getUserAnswerRecord
         let parameters:[String:Any] = [ "user_id" : userID,
-                           "game_id" : gameID]
+                                        "game_id" : session.gameID]
         let publisher:DataResponsePublisher<[ScoreRecord]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         self.cancellable2 = publisher
             .sink(receiveValue: {(values) in

@@ -75,7 +75,7 @@ struct GameMap: View {
                 Spacer()
                 VStack(alignment: .leading,spacing: 10){
                     Button {
-                        gameVM.startGame(session: session)
+                        gameVM.startGame(session: session,userID :settingStorage.userID )
                         
                     } label: {
                         Text("Start Game")

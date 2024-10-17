@@ -11,7 +11,7 @@ import SwiftUI
 import CoreLocation
 struct ChestModel:Identifiable,Decodable,Hashable{
     var id:Int
-    var srcID:Int
+    //var srcID:Int
     var latitude:Double
     var longitude:Double
     var avaliableNumber:Int?
@@ -29,8 +29,9 @@ struct ChestModel:Identifiable,Decodable,Hashable{
     var hint4:String?
     var question:String
     var answer:String?
-    var gameID:Int
+    //var gameID:Int
     var poiID:Int?
+    var room_id_id:Int?
     var coordinate:CLLocationCoordinate2D!{
         get{
             return CLLocationCoordinate2D(
@@ -40,7 +41,7 @@ struct ChestModel:Identifiable,Decodable,Hashable{
     }
     enum CodingKeys: String, CodingKey{
         case id
-        case srcID = "src_id"
+        //case srcID = "src_id"
         case latitude = "lat"
         case longitude = "lng"
         case avaliableNumber = "num"
@@ -58,8 +59,9 @@ struct ChestModel:Identifiable,Decodable,Hashable{
         case hint4
         case question
         case answer
-        case gameID = "game_id_id"
+        //case gameID = "game_id_id"
         case poiID = "poi_id_id"
+        case room_id_id
     }
 
     func hash(into hasher: inout Hasher) {

@@ -17,4 +17,4 @@ var testxoi:[XOI] = [
 var testGroup = Group(id: -1, name: "", leaderId: -1, info: "")
 var testSession = SessionModel(id: -1, name: "", gameID: 0, status: "")
 //var testChest = ChestModel(id: 39, srcID: 0, latitude: 0, longitude: 0, avaliableNumber: 0, remainNumber: 0, point: 0, discoverDistance: 0, questionType: 0, option1: "", option2: "", option3: "", option4: "", hint1: "", hint2: "", hint3: "", hint4: "", question: "", answer: "", gameID: 0, poiID: 0)
-var testChest = ChestModel(id: 39, srcID: 4, latitude: 22.997, longitude: 120.222, avaliableNumber: 20, remainNumber: 200, point: 49, discoverDistance: 2000, questionType: 2, question: "TTTTTT", answer: "T", gameID: 21)
+var testChest = ChestModel(id: 39,  latitude: 22.997, longitude: 120.222, avaliableNumber: 20, remainNumber: 200, point: 49, discoverDistance: 2000, questionType: 2, question: "TTTTTT", answer: "T")
