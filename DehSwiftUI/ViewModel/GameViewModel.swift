@@ -29,6 +29,8 @@ class GameViewModel:ObservableObject {
     @Published private var cancellable3: AnyCancellable?
     @Published private var startGameCancellable: AnyCancellable?
     
+    @Published private(set) var sessionScores: [Int: Int] = [:]
+    
     func startGame(session: SessionModel,userID:String) {
         let url = GameStartUrl
         let parameters:[String:String] = [
@@ -205,24 +207,29 @@ class GameViewModel:ObservableObject {
   
     
     func updateScore(userID:String, session: SessionModel) {
-        score = 0
-        let url = getUserAnswerRecord
-        let parameters:[String:Any] = [ "user_id" : userID,
-                                        "room_id" : session.id]
-        let publisher:DataResponsePublisher<[ScoreRecord]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
-        self.cancellable2 = publisher
-            .sink(receiveValue: {(values) in
-                print(values.debugDescription)
-                if let records = values.value {
-                    for record in records {
-                        print(record.chest_id)
-                        self.chestList = self.chestList.filter({$0.id != record.chest_id})
-                        if record.correctness == 1 {
-                            self.score += record.point
-                        }
-                        print(self.chestList)
-                    }
-                }
-            })
-    }
+           let url = getUserAnswerRecord
+           let parameters:[String:Any] = [ "user_id" : userID,
+                                       "room_id" : session.id]
+           let publisher:DataResponsePublisher<[ScoreRecord]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+           self.cancellable2 = publisher
+               .sink(receiveValue: {(values) in
+                   print(values.debugDescription)
+                   if let records = values.value {
+                       var sessionScore = 0
+                       for record in records {
+                           print(record.chest_id)
+                           self.chestList = self.chestList.filter({$0.id != record.chest_id})
+                           if record.correctness == 1 {
+                               sessionScore += record.point
+                           }
+                           print(self.chestList)
+                       }
+                       self.sessionScores[session.id] = sessionScore
+                       self.score = sessionScore  // Update current score
+                   }
+               })
+       }
+    func updateSessionScore(sessionId: Int, points: Int) {
+            sessionScores[sessionId] = (sessionScores[sessionId] ?? 0) + points
+        }
 }

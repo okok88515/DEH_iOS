@@ -89,7 +89,7 @@ struct GameMap: View {
 //                    Button(action: {}, label: {
 //                        Image("add")
 //                    })
-                    Text("Score:\(gameVM.score)")
+                    Text("Score:\(gameVM.sessionScores[session.id] ?? 0)")
                         .frame(width: UIScreen.main.bounds.width, height: 50, alignment: .center)
                         .font(.largeTitle)
                         .background(Color.green)

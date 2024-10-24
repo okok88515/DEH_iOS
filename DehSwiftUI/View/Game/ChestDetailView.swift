@@ -219,11 +219,12 @@ extension ChestDetailView{
     }
     func checkAnswer(_ answer:String){
         if(answer == "T" || answer == "F" ){
-            
             if(self.chest.answer == answer){
                 responseMessage = "answer correct"
-                gameVM.score += chest.point ?? 0
-                
+                let points = chest.point ?? 0
+                gameVM.score += points
+                gameVM.updateSessionScore(sessionId: session.id, points: points)
+                print("game score: \(gameVM.score)")
             }else if(self.chest.answer != answer){
                 responseMessage = "answer wrong"
             }
@@ -231,23 +232,26 @@ extension ChestDetailView{
         }else if (answer == "A" || answer == "B" || answer == "C" || answer == "D" ){
             if(self.chest.answer == answer){
                 responseMessage = "answer correct"
-                gameVM.score += chest.point ?? 0
-                
+                let points = chest.point ?? 0
+                gameVM.score += points
+                gameVM.updateSessionScore(sessionId: session.id, points: points)
+                print("game score: \(gameVM.score)")
             }else if(self.chest.answer != answer){
                 responseMessage = "answer wrong"
             }
         }else{  //問答題
             if(self.chest.answer == answer){
                 responseMessage = "answer correct"
-                gameVM.score += chest.point ?? 0
-                
+                let points = chest.point ?? 0
+                gameVM.score += points
+                gameVM.updateSessionScore(sessionId: session.id, points: points)
+                print("game score: \(gameVM.score)")
             }else if(self.chest.answer != answer){
                 responseMessage = "answer wrong"
             }
         }
         showMessage = true
         chestMinus(answer: answer, correctness: "\(self.chest.answer == answer ? "1" : "0")")
-        
     }
     func insertAnswer(answer:String,correctness:String){
         let url = insertAnswerUrl
