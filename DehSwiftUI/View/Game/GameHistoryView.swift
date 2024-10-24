@@ -65,6 +65,12 @@ extension GameHistoryView{
 }
 struct GameHistoryView_Previews: PreviewProvider {
     static var previews: some View {
-        GameHistoryView()
+        GameHistoryView(
+            roomID: 1,
+            gameHistoryList: [
+                GameHistoryModel(id: 1,  startTime: "2024-10-24T10:00:00Z"),
+                GameHistoryModel(id: 2, startTime: "2024-10-24T12:00:00Z")
+            ]
+        )
     }
 }

@@ -44,7 +44,9 @@ struct GameMap: View {
             }
             .onAppear(){
                 gameVM.initial(session: session, userID: settingStorage.userID)
+               
 //                locationManager.startUpdate()
+               
                 print(gameVM.chestList)
                 
             }

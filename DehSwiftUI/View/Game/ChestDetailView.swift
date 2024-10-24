@@ -124,9 +124,10 @@ extension ChestDetailView{
 //                ButtonArray(text1: "delete photo", text2: "preview video", text3: "preview radio")
                 Button(action: {
                     if let index = gameVM.chestList.firstIndex(of: chest) {
+                        checkAnswer(textInEditor)
                         gameVM.chestList.remove(at: index)
                     }
-                    self.presentationMode.wrappedValue.dismiss()
+                    //self.presentationMode.wrappedValue.dismiss()
                 }, label: {
                     Text("sent answer")
                         .frame(width: UIScreen.main.bounds.width-0, height: 50)
@@ -217,25 +218,36 @@ extension ChestDetailView{
             })
     }
     func checkAnswer(_ answer:String){
-        switch answer{
-        case "T" :
-            fallthrough
-        case "F" :
-            fallthrough
-        case "A":
-            fallthrough
-        case "B":
-            fallthrough
-        case "C":
-            fallthrough
-        case "D":
+        if(answer == "T" || answer == "F" ){
             
-            insertAnswer(answer: answer, correctness: "\(self.chest.answer == answer ? "1" : "0")")
-            if(answer == self.chest.answer) {
-                chestMinus(answer: answer, correctness: "\(self.chest.answer == answer ? "1" : "0")")
+            if(self.chest.answer == answer){
+                responseMessage = "answer correct"
+                gameVM.score += chest.point ?? 0
+                
+            }else if(self.chest.answer != answer){
+                responseMessage = "answer wrong"
             }
-        default: break
+            
+        }else if (answer == "A" || answer == "B" || answer == "C" || answer == "D" ){
+            if(self.chest.answer == answer){
+                responseMessage = "answer correct"
+                gameVM.score += chest.point ?? 0
+                
+            }else if(self.chest.answer != answer){
+                responseMessage = "answer wrong"
+            }
+        }else{  //問答題
+            if(self.chest.answer == answer){
+                responseMessage = "answer correct"
+                gameVM.score += chest.point ?? 0
+                
+            }else if(self.chest.answer != answer){
+                responseMessage = "answer wrong"
+            }
         }
+        showMessage = true
+        chestMinus(answer: answer, correctness: "\(self.chest.answer == answer ? "1" : "0")")
+        
     }
     func insertAnswer(answer:String,correctness:String){
         let url = insertAnswerUrl

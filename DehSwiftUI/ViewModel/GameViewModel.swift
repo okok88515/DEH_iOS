@@ -93,6 +93,7 @@ class GameViewModel:ObservableObject {
         //updateScore(userID: userID, gameID: session.gameID)
         getChests(userID: userID, session: session)
         updateScore(userID: userID, session: session)
+        
     }
 //    func getChests(session:SessionModel){
 //        let url = getChestList
@@ -207,7 +208,7 @@ class GameViewModel:ObservableObject {
         score = 0
         let url = getUserAnswerRecord
         let parameters:[String:Any] = [ "user_id" : userID,
-                                        "game_id" : session.gameID]
+                                        "room_id" : session.id]
         let publisher:DataResponsePublisher<[ScoreRecord]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         self.cancellable2 = publisher
             .sink(receiveValue: {(values) in
