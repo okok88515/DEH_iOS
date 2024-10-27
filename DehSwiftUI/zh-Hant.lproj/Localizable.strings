@@ -138,3 +138,6 @@
 "Region LOI" = "場域景線";
 "Region AOI" = "場域景區";
 "Region SOI" = "場域主題故事";
+
+"End game" = "結束遊戲";
+"Are you sure you want to end the game?" = "確定要結束遊戲嗎?";
