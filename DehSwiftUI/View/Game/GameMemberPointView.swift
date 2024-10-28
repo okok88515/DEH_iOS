@@ -1,73 +1,92 @@
-//
-//  GameMemberPoint.swift
-//  DehSwiftUI
-//
-//  Created by 阮盟雄 on 2021/9/8.
-//  Copyright © 2021 mmlab. All rights reserved.
-//
-
 import SwiftUI
 import Combine
 import Alamofire
+
 struct GameMemberPoint: View {
-    @EnvironmentObject var settingStorage:SettingStorage
+    @EnvironmentObject var settingStorage: SettingStorage
     @State private var cancellable: AnyCancellable?
-    @State var roomID:Int = -1
-    @State var gameID:Int = -1
-    @State var gamePointList :[GamePointModel] = []
+    @State var roomID: Int = -1
+    @State var gameID: Int = -1
+    @State var gamePointList: [GamePointModel] = []
+    
     var body: some View {
-        List{
-            ForEach(gamePointList,id:\.id){
-                gamePoint in
-                HStack{
+        List {
+            // Original: ForEach(gamePointList) caused identity issues due to insufficient Hashable implementation
+            // Changed to use indices to force unique identification of each row
+            ForEach(gamePointList.indices, id: \.self) { index in
+                let gamePoint = gamePointList[index]
+                HStack {
                     Text(gamePoint.name)
                         .foregroundColor(Color.white)
                         .allowsTightening(true)
                         .lineLimit(1)
-                        .background(Color.init(UIColor(rgba:lightGreen)))
+                        .background(Color.init(UIColor(rgba: lightGreen)))
                     Spacer()
-                    Text("Point:\(gamePoint.point)")
+                    // Now each point value is correctly displayed because each row has a unique identity
+
+                    Text("Point: \(gamePoint.point)")
                         .foregroundColor(Color.white)
                 }
                 .listRowBackground(Color.init(UIColor(rgba: lightGreen)))
-//                NavigationLink(
-//                    destination: GameMemberPoint( roomID: self.roomID,gameID: gamePoint.id),
             }
         }
-        .onAppear(){
+        .onAppear {
             getMemberPoint()
         }
     }
-    
 }
 
-extension GameMemberPoint{
-    func getMemberPoint(){
+extension GameMemberPoint {
+    func getMemberPoint() {
         let url = getMemberPointUrl
-        let parameters:[String:String] = [
+        let parameters: [String: String] = [
             "room_id": "\(roomID)",
             "game_id": "\(gameID)",
             "user_id": "\(settingStorage.userID)",
             "rank": "1",
         ]
-        let publisher:DataResponsePublisher<[GamePointModel]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        print("Fetching with parameters: \(parameters)")
+        
+        let publisher: DataResponsePublisher<[GamePointModel]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         self.cancellable = publisher
-            .sink(receiveValue: {(values) in
+            .sink(receiveValue: { values in
+                print("\n=== Network Response ===")
                 print(values.debugDescription)
-                print(Date())
-                if let value = values.value{
-                    self.gamePointList = value
-                    removeUncorrectness()
-                }
                 
+                if let value = values.value {
+                    print("\n=== Raw Data ===")
+                    value.forEach { point in
+                        print("""
+                            ID: \(point.id)
+                            Name: \(point.name)
+                            Point: \(point.point)
+                            Answer Time: \(point.answer_time)
+                            Correctness: \(point.correctness)
+                            ----------------
+                            """)
+                    }
+                    
+                    let filteredList = value.filter { $0.correctness }
+                    print("\n=== After Filtering (\(filteredList.count) items) ===")
+                    
+                    let sortedList = filteredList.sorted { $0.point > $1.point }
+                    print("\n=== Final Sorted List (\(sortedList.count) items) ===")
+                    sortedList.forEach { point in
+                        print("""
+                            ID: \(point.id)
+                            Name: \(point.name)
+                            Point: \(point.point)
+                            Answer Time: \(point.answer_time)
+                            ----------------
+                            """)
+                    }
+                    // Added DispatchQueue.main.async to ensure UI updates happen on main thread
+
+                    DispatchQueue.main.async {
+                        self.gamePointList = sortedList
+                    }
+                }
             })
-    }
-    func removeUncorrectness(){
-        for gamePoint in gamePointList{
-            if gamePoint.correctness == false{
-                gamePointList.remove(at: gamePointList.firstIndex(where: {$0 === gamePoint}) ?? 0)
-            }
-        }
     }
 }
 
