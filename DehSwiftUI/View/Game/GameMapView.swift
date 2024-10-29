@@ -123,7 +123,7 @@ struct GameMap: View {
                     }
 
                     // Score Display
-                    Text("Score：\(gameVM.sessionScores[session.id] ?? 0)")
+                    Text("Score：\(gameVM.score)")
                         .font(.title2)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)

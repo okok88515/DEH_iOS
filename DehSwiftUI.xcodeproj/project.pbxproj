@@ -13,6 +13,12 @@
 		10CC892D295490E10012CB78 /* MapViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10CC8929295490E10012CB78 /* MapViewModel.swift */; };
 		10CC892E295490E10012CB78 /* MapViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10CC8929295490E10012CB78 /* MapViewModel.swift */; };
 		10CC892F295490E10012CB78 /* MapViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10CC8929295490E10012CB78 /* MapViewModel.swift */; };
+		5590AFF42CD0DE07005E114D /* GameViewModelCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5590AFF32CD0DE00005E114D /* GameViewModelCache.swift */; };
+		5590AFF52CD0DE07005E114D /* GameViewModelCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5590AFF32CD0DE00005E114D /* GameViewModelCache.swift */; };
+		5590AFF62CD0DE07005E114D /* GameViewModelCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5590AFF32CD0DE00005E114D /* GameViewModelCache.swift */; };
+		5590AFF72CD0DE07005E114D /* GameViewModelCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5590AFF32CD0DE00005E114D /* GameViewModelCache.swift */; };
+		5590AFF82CD0DE07005E114D /* GameViewModelCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5590AFF32CD0DE00005E114D /* GameViewModelCache.swift */; };
+		5590AFF92CD0DE07005E114D /* GameViewModelCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5590AFF32CD0DE00005E114D /* GameViewModelCache.swift */; };
 		602B35F529B0B6A200C975D6 /* RegionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602B35F429B0B6A200C975D6 /* RegionView.swift */; };
 		602B35F629B0B6A200C975D6 /* RegionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602B35F429B0B6A200C975D6 /* RegionView.swift */; };
 		602B35F729B0B6A200C975D6 /* RegionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602B35F429B0B6A200C975D6 /* RegionView.swift */; };
@@ -455,6 +461,7 @@
 
 /* Begin PBXFileReference section */
 		10CC8929295490E10012CB78 /* MapViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewModel.swift; sourceTree = "<group>"; };
+		5590AFF32CD0DE00005E114D /* GameViewModelCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModelCache.swift; sourceTree = "<group>"; };
 		5908F03F26E8949600931C01 /* GameMemberPointView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameMemberPointView.swift; sourceTree = "<group>"; };
 		5908F04126E8ABFE00931C01 /* GamePointModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamePointModel.swift; sourceTree = "<group>"; };
 		59129678263BCA17006D1F0A /* GameMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameMapView.swift; sourceTree = "<group>"; };
@@ -806,6 +813,7 @@
 		E17D5E972917A84000B6AAC7 /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
+				5590AFF32CD0DE00005E114D /* GameViewModelCache.swift */,
 				E17D5E982917A86800B6AAC7 /* GameViewModel.swift */,
 				10CC8929295490E10012CB78 /* MapViewModel.swift */,
 			);
@@ -1093,6 +1101,7 @@
 				7332DCEE2758D5C500E0C19A /* MapView.swift in Sources */,
 				7332DCEF2758D5C500E0C19A /* GameHistoryModel.swift in Sources */,
 				7332DCF02758D5C500E0C19A /* GroupSearchView.swift in Sources */,
+				5590AFF82CD0DE07005E114D /* GameViewModelCache.swift in Sources */,
 				7332DCF12758D5C500E0C19A /* ColorExtension.swift in Sources */,
 				7332DCF22758D5C500E0C19A /* ViewExtension.swift in Sources */,
 				7332DCF32758D5C500E0C19A /* URLList.swift in Sources */,
@@ -1169,6 +1178,7 @@
 				7332DD3B2758D5C600E0C19A /* MapView.swift in Sources */,
 				7332DD3C2758D5C600E0C19A /* GameHistoryModel.swift in Sources */,
 				7332DD3D2758D5C600E0C19A /* GroupSearchView.swift in Sources */,
+				5590AFF42CD0DE07005E114D /* GameViewModelCache.swift in Sources */,
 				7332DD3E2758D5C600E0C19A /* ColorExtension.swift in Sources */,
 				7332DD3F2758D5C600E0C19A /* ViewExtension.swift in Sources */,
 				7332DD402758D5C600E0C19A /* URLList.swift in Sources */,
@@ -1245,6 +1255,7 @@
 				7332DD882758D62500E0C19A /* MapView.swift in Sources */,
 				7332DD892758D62500E0C19A /* GameHistoryModel.swift in Sources */,
 				7332DD8A2758D62500E0C19A /* GroupSearchView.swift in Sources */,
+				5590AFF52CD0DE07005E114D /* GameViewModelCache.swift in Sources */,
 				7332DD8B2758D62500E0C19A /* ColorExtension.swift in Sources */,
 				7332DD8C2758D62500E0C19A /* ViewExtension.swift in Sources */,
 				7332DD8D2758D62500E0C19A /* URLList.swift in Sources */,
@@ -1321,6 +1332,7 @@
 				7332DDD52758D63400E0C19A /* MapView.swift in Sources */,
 				7332DDD62758D63400E0C19A /* GameHistoryModel.swift in Sources */,
 				7332DDD72758D63400E0C19A /* GroupSearchView.swift in Sources */,
+				5590AFF72CD0DE07005E114D /* GameViewModelCache.swift in Sources */,
 				7332DDD82758D63400E0C19A /* ColorExtension.swift in Sources */,
 				7332DDD92758D63400E0C19A /* ViewExtension.swift in Sources */,
 				7332DDDA2758D63400E0C19A /* URLList.swift in Sources */,
@@ -1397,6 +1409,7 @@
 				7332DE222758D9C600E0C19A /* MapView.swift in Sources */,
 				7332DE232758D9C600E0C19A /* GameHistoryModel.swift in Sources */,
 				7332DE242758D9C600E0C19A /* GroupSearchView.swift in Sources */,
+				5590AFF62CD0DE07005E114D /* GameViewModelCache.swift in Sources */,
 				7332DE252758D9C600E0C19A /* ColorExtension.swift in Sources */,
 				7332DE262758D9C600E0C19A /* ViewExtension.swift in Sources */,
 				7332DE272758D9C600E0C19A /* URLList.swift in Sources */,
@@ -1473,6 +1486,7 @@
 				E1EA94C627B102580083118F /* MapView.swift in Sources */,
 				E1EA94C727B102580083118F /* GameHistoryModel.swift in Sources */,
 				E1EA94C827B102580083118F /* GroupSearchView.swift in Sources */,
+				5590AFF92CD0DE07005E114D /* GameViewModelCache.swift in Sources */,
 				E1EA94C927B102580083118F /* ColorExtension.swift in Sources */,
 				E1EA94CA27B102580083118F /* ViewExtension.swift in Sources */,
 				E1EA94CB27B102580083118F /* URLList.swift in Sources */,

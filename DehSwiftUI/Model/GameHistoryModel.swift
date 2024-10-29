@@ -76,19 +76,19 @@ class gameListtuple : Identifiable, Hashable{
     }
 }
 
-class ScoreRecord:Decodable {
-    var answer:String
-    var chest_id:Int
-    var correctness:Int
-    var option1:String?
-    var option2:String?
-    var option3:String?
-    var option4:String?
-    var point:Int
-    var question:String
-    var question_type:Int
+class ScoreRecord: Decodable {
+    var answer: String?
+    var chest_id: Int?
+    var correctness: Bool?     // Changed from Int? to Bool? because server response is True/False
+    var option1: String?
+    var option2: String?
+    var option3: String?
+    var option4: String?
+    var point: Int?
+    var question: String?
+    var question_type: Int?
     
-    enum CodingKeys: String, CodingKey{
+    enum CodingKeys: String, CodingKey {
         case answer
         case chest_id = "chest_id_id"
         case correctness
@@ -101,3 +101,4 @@ class ScoreRecord:Decodable {
         case question_type
     }
 }
+

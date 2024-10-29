@@ -44,6 +44,7 @@ let GameIDUrl = "http://deh.csie.ncku.edu.tw:8080/api/v1/get_game_id"
 let GameStartUrl = "http://deh.csie.ncku.edu.tw:8080/api/v1/start_game"
 let GameHistoryUrl = "http://deh.csie.ncku.edu.tw:8080/api/v1/get_game_history"
 let GameDataUrl = "http://deh.csie.ncku.edu.tw:8080/api/v1//get_game_data"
+
 let getUserAnswerRecord = "http://deh.csie.ncku.edu.tw:8080/api/v1/getUserAnswerRecord"
 let privateGetGroupList = "http://deh.csie.ncku.edu.tw:8080/api/v1/getGroupList"
 let getRoomList = "http://deh.csie.ncku.edu.tw:8080/api/v1/getRoomList"

@@ -223,7 +223,7 @@ extension ChestDetailView{
                 responseMessage = "answer correct"
                 let points = chest.point ?? 0
                 gameVM.score += points
-                gameVM.updateSessionScore(sessionId: session.id, points: points)
+                gameVM.updateScore(userID: settingStorage.userID, session: session)
                 print("game score: \(gameVM.score)")
             }else if(self.chest.answer != answer){
                 responseMessage = "answer wrong"
@@ -234,7 +234,7 @@ extension ChestDetailView{
                 responseMessage = "answer correct"
                 let points = chest.point ?? 0
                 gameVM.score += points
-                gameVM.updateSessionScore(sessionId: session.id, points: points)
+                gameVM.updateScore(userID: settingStorage.userID, session: session)
                 print("game score: \(gameVM.score)")
             }else if(self.chest.answer != answer){
                 responseMessage = "answer wrong"
@@ -244,7 +244,7 @@ extension ChestDetailView{
                 responseMessage = "answer correct"
                 let points = chest.point ?? 0
                 gameVM.score += points
-                gameVM.updateSessionScore(sessionId: session.id, points: points)
+                gameVM.updateScore(userID: settingStorage.userID, session: session)
                 print("game score: \(gameVM.score)")
             }else if(self.chest.answer != answer){
                 responseMessage = "answer wrong"
