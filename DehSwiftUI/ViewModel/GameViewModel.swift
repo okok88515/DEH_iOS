@@ -27,8 +27,11 @@ class GameViewModel: ObservableObject {
             .sink(receiveValue: { [weak self] (values) in
                 print(values.debugDescription)
                 // After starting the game, refresh game data to get new timer
+                // only when you press start game will you need to wait for getGameaData to finish and set gameid
+                // into seesion.gameID for subsequent function tto work, otherwise gameid will be initial value -1
                 self?.getGameData(session: session, completion: {
                     self?.getChests(userID: userID, session: session)
+                    self?.updateScore(userID: userID, session: session)
                 })
             })
     }
@@ -167,7 +170,7 @@ class GameViewModel: ObservableObject {
                 print(values.debugDescription)
                 self?.min = 0
                 self?.sec = 0
-                self?.score = 0  // Only need to reset current score
+                self?.updateScore(userID: userID, session: session)
             })
     }
     
