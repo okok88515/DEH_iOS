@@ -58,6 +58,8 @@ let getGameDataUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/getGameData"
 
 let endGameUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/endGame"
 
+
+let uploadMediaAnswerUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/uploadMediaAnswer"
 let FieldGetAllListUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/listRegion"
 
 let CreateTempAccountUrl:      String = "https://deh.csie.ncku.edu.tw:8080/api/v1/users/createtempaccount"

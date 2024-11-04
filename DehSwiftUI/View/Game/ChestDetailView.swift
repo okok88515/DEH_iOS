@@ -1,14 +1,65 @@
-//
-//  ChestDetailView.swift
-//  DehSwiftUI
-//
-//  Created by 阮盟雄 on 2021/4/30.
-//  Copyright © 2021 mmlab. All rights reserved.
-//
-
 import SwiftUI
 import Combine
 import Alamofire
+import AVFoundation
+import AVKit
+
+struct ChestMedia: Decodable {
+    var id: Int
+    var url: URL
+    var format: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "ATT_id"
+        case url = "ATT_url"
+        case format = "ATT_format"
+    }
+}
+
+// Helper extension for Data
+extension Data {
+    mutating func append(_ string: String) {
+        if let data = string.data(using: .utf8) {
+            append(data)
+        }
+    }
+}
+
+struct AudioRecordView: View {
+    @Binding var audioURL: URL?
+    @Binding var recorder: Sounds?
+    @Environment(\.presentationMode) var presentationMode
+    @State private var isRecording = false
+    
+    var body: some View {
+        VStack {
+            if isRecording {
+                Text("Recording...")
+                    .foregroundColor(.red)
+            }
+            
+            Button(action: {
+                if isRecording {
+                    recorder?.stopRecord()
+                    audioURL = recorder?.tempVideoFileUrl
+                    isRecording = false
+                    presentationMode.wrappedValue.dismiss()
+                } else {
+                    recorder = Sounds()
+                    recorder?.recordSounds()
+                    isRecording = true
+                }
+            }) {
+                Text(isRecording ? "Stop Recording" : "Start Recording")
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(8)
+            }
+        }
+    }
+}
+
 struct ChestDetailView: View {
     @ObservedObject var locationManager = LocationManager()
     @EnvironmentObject var settingStorage:SettingStorage
@@ -18,32 +69,45 @@ struct ChestDetailView: View {
     @State private var chestCancellable: AnyCancellable?
     @State private var minusCancellable: AnyCancellable?
     @State private var mediaCancellable: [AnyCancellable] = []
-    @State var chest:ChestModel
-    @State var session:SessionModel
-    @State var chestMedia:[ChestMedia] = []
-    @State var medias:[MediaMulti] = []
+    @State private var uploadMediaCancellable: AnyCancellable?
+    @State var chest: ChestModel
+    @State var session: SessionModel
+    @State var chestMedia: [ChestMedia] = []
+    @State var medias: [MediaMulti] = []
     @State var index = 0
     @State var answer = ""
     @State var showMessage = false
-    @State var responseMessage:String = ""
+    @State var responseMessage: String = ""
     @State var textInEditor = "Answer"
     @State var selection: Int? = nil
-    @State var mediaData:Data? = nil
-    @State var recoder:Sounds? = nil
+    @State var mediaData: Data? = nil
+    @State var recoder: Sounds? = nil
+
+    // Multimedia answer states
+    @State private var image = UIImage()
+    @State private var isShowPhotoLibrary = false
+    @State private var showAudioRecorder = false
+    @State private var audioURL: URL?
+    @State private var answerType: AnswerType = .text
+
+    enum AnswerType {
+        case text, image, audio
+    }
+
     var body: some View {
-        ZStack{
-            Color.init(UIColor(rgba:lightGreen))
+        ZStack {
+            Color.init(UIColor(rgba: lightGreen))
             GeometryReader { geometry in
-                VStack{
+                VStack {
                     PagingView(index: $index.animation(), maxIndex: medias.count - 1) {
-                        ForEach(self.medias, id: \.data) {
-                            singleMedia in
+                        ForEach(self.medias, id: \.data) { singleMedia in
                             singleMedia.view()
                         }
                     }
                     .frame(height: geometry.size.height * 0.4)
-                    ScrollView{
-                        HStack{
+                    
+                    ScrollView {
+                        HStack {
                             Spacer()
                             Text("Question:")
                                 .multilineTextAlignment(.center)
@@ -60,23 +124,24 @@ struct ChestDetailView: View {
                         Text(chest.question)
                             .frame(height: geometry.size.height * 0.15)
                         
-                        answerBoxSelector(chest.questionType,geometry)
+                        answerBoxSelector(chest.questionType, geometry)
                             .alert(isPresented: $showMessage) {() -> Alert in
                                 return Alert(title: Text(responseMessage),
-                                             dismissButton:.default(Text("Ok"), action: {
-//                                    if let index = gameVM.chestList.firstIndex(of: chest) {
-//                                        gameVM.chestList.remove(at: index)
-//                                    }
+                                           dismissButton: .default(Text("Ok"), action: {
                                     self.presentationMode.wrappedValue.dismiss()
-                                    
-                                })
-                                )
+                                }))
                             }
                         Spacer()
                     }
                 }
-                .onAppear(){
+                .onAppear() {
                     getChestMedia()
+                }
+                .sheet(isPresented: $isShowPhotoLibrary) {
+                    ImagePicker(selectedImage: $image, mediaData: $mediaData, sourceType: .photoLibrary)
+                }
+                .sheet(isPresented: $showAudioRecorder) {
+                    AudioRecordView(audioURL: $audioURL, recorder: $recoder)
                 }
             }
             EmptyView()
@@ -87,261 +152,317 @@ struct ChestDetailView: View {
     }
 }
 
-extension ChestDetailView{
-    @ViewBuilder func answerBoxSelector(_ questionType:Int,_ geometry:GeometryProxy? = nil) -> some View {
+// MARK: - View Extensions
+extension ChestDetailView {
+    @ViewBuilder func answerBoxSelector(_ questionType: Int, _ geometry: GeometryProxy? = nil) -> some View {
         switch questionType {
-        case 1: //是非題的介面
-            HStack{
+        case 1: // True/False
+            HStack {
                 Button(action: {checkAnswer("T")}, label: {
                     Image(systemName: "checkmark.circle")
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                 })
-                Button(action: { checkAnswer("F")}, label: {
+                Button(action: {checkAnswer("F")}, label: {
                     Image(systemName: "xmark.circle")
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                 })
             }
-        case 2: //選擇題的介面
-            VStack{
-                HStack{
-                    buttonViewer(answer: "A",option: chest.option1 ?? "")
-                    buttonViewer(answer: "B",option: chest.option2 ?? "")
+        case 2: // Multiple Choice
+            VStack {
+                HStack {
+                    buttonViewer(answer: "A", option: chest.option1 ?? "")
+                    buttonViewer(answer: "B", option: chest.option2 ?? "")
                 }
-                HStack{
-                    buttonViewer(answer: "C",option: chest.option3 ?? "")
-                    buttonViewer(answer: "D",option: chest.option4 ?? "")
+                HStack {
+                    buttonViewer(answer: "C", option: chest.option3 ?? "")
+                    buttonViewer(answer: "D", option: chest.option4 ?? "")
                 }
             }
             .background(Color.white)
-        case 3:
+        case 3: // Essay/Media Question
             VStack {
-                TextEditor(text: $textInEditor)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .frame(height: (geometry?.size.height ?? 0) * 0.2)
-//                ButtonArray(text1: "photo", text2: "video", text3: "radio")
-//                ButtonArray(text1: "delete photo", text2: "preview video", text3: "preview radio")
-                Button(action: {
-                    if let index = gameVM.chestList.firstIndex(of: chest) {
-                        checkAnswer(textInEditor)
-                        gameVM.chestList.remove(at: index)
+                Picker("Answer Type", selection: $answerType) {
+                    Text("Text").tag(AnswerType.text)
+                    Text("Image").tag(AnswerType.image)
+                    Text("Audio").tag(AnswerType.audio)
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding()
+                
+                switch answerType {
+                case .text:
+                    TextEditor(text: $textInEditor)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .frame(height: (geometry?.size.height ?? 0) * 0.2)
+                case .image:
+                    VStack {
+                        if let media = mediaData.flatMap({ data in MediaMulti(data: data, format: .Picture) }) {
+                            media.view()
+                        } else {
+                            Image(uiImage: self.image)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 200)
+                        }
+                        
+                        Button(action: {
+                            self.isShowPhotoLibrary = true
+                        }) {
+                            HStack {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 20))
+                                Text("Choose Photo")
+                                    .font(.headline)
+                            }
+                            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 50)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                            .padding(.horizontal)
+                        }
                     }
-                    //self.presentationMode.wrappedValue.dismiss()
+                case .audio:
+                    VStack {
+                        if let url = audioURL {
+                            if let audioData = try? Data(contentsOf: url) {
+                                let media = MediaMulti(data: audioData, format: .Voice)
+                                media.view()
+                            }
+                        }
+                        Button(audioURL == nil ? "Record Audio" : "Re-record Audio") {
+                            showAudioRecorder = true
+                        }
+                        .foregroundColor(.white)
+                        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 50)
+                        .background(Color.blue)
+                        .cornerRadius(20)
+                        .padding(.horizontal)
+                    }
+                }
+                
+                Button(action: {
+                    if answerType == .text {
+                        checkAnswer(textInEditor)
+                        insertAnswer(answer: textInEditor, correctness: "\(self.chest.answer == textInEditor ? "1" : "0")")
+                    } else {
+                        submitMultimediaAnswer()
+                    }
                 }, label: {
-                    Text("sent answer")
-                        .frame(width: UIScreen.main.bounds.width-0, height: 50)
+                    Text("Submit Answer")
+                        .frame(width: UIScreen.main.bounds.width-20, height: 50)
                         .foregroundColor(.white)
                         .background(Color.yellow)
+                        .cornerRadius(8)
                 })
+                .padding(.top)
             }
         default:
             EmptyView()
         }
     }
-    @ViewBuilder func buttonViewer(answer:String,option:String) -> some View{
+    
+    @ViewBuilder func buttonViewer(answer: String, option: String) -> some View {
         Button(action: {checkAnswer(answer)}, label: {
             Text(option)
                 .fontWeight(.bold)
                 .font(.title)
-                .frame(minWidth: /*@START_MENU_TOKEN@*/0/*@END_MENU_TOKEN@*/, idealWidth: /*@START_MENU_TOKEN@*/100/*@END_MENU_TOKEN@*/, maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, minHeight: /*@START_MENU_TOKEN@*/0/*@END_MENU_TOKEN@*/, idealHeight: /*@START_MENU_TOKEN@*/100/*@END_MENU_TOKEN@*/, maxHeight: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
+                .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 0, idealHeight: 100, maxHeight: .infinity, alignment: .center)
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
                         .stroke(Color.init(UIColor(rgba:lightGreen)), lineWidth: 5)
                 )
         })
     }
-    @ViewBuilder func imageButton(imageName:String,mediaType:String)-> some View{
-        let typeToInt = [
-            "picture":1,
-            "voice":2,
-            "video":3,
-        ]
-        NavigationLink(
-            destination: ImageSelectView(mediaData: $mediaData),
-            tag: typeToInt[mediaType] ?? 0,
-            selection: $selection,
-            label: {
-                Button(action: {
-                    selection = typeToInt[mediaType]
-                }, label: {
-                    Image(systemName: imageName)
-                        .foregroundColor(mediaData == nil ? .blue : .black)
-                        .font(.system(size: 30))
-                })
-                .contextMenu(ContextMenu(menuItems: {
-                    Text("make a \(mediaType) answer")
-                        .bold()
-                }))
-            })
-        
-    }
 }
 
-extension ChestDetailView{
-    struct ChestMedia:Decodable {
-        var id:Int
-        var url:URL
-        var format:String
-        enum CodingKeys: String, CodingKey{
-            case id = "ATT_id"
-            case url = "ATT_url"
-            case format = "ATT_format"
-        }
-    }
-    func getChestMedia(){
+extension ChestDetailView {
+    func getChestMedia() {
         let url = getChestMediaUrl
-        let parameters:[String:String] = [
+        let parameters: [String:String] = [
             "chest_id": "\(chest.id)",
         ]
-        let publisher:DataResponsePublisher<[ChestMedia]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<[ChestMedia]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         self.chestCancellable = publisher
             .sink(receiveValue: {(values) in
-                //                print(values.data?.JsonPrint())
-//                print(values.debugDescription)
-                if let value = values.value{
+                if let value = values.value {
                     self.chestMedia = value
                 }
-                for chestMedia in self.chestMedia{
-                    let publisher:DataResponsePublisher = NetworkConnector().getMediaPublisher(url: chestMedia.url)
+                for chestMedia in self.chestMedia {
+                    let publisher: DataResponsePublisher = NetworkConnector().getMediaPublisher(url: chestMedia.url)
                     let cancelable = publisher
                         .sink(receiveValue: {(values) in
-//                            print(values.debugDescription)
-                            if let data = values.data{
-                                medias.append(MediaMulti(data:data,format:format.Picture ))
-                                //                            chestMedia.format))
+                            if let data = values.data {
+                                medias.append(MediaMulti(data:data, format:.Picture))
                             }
                         })
                     self.mediaCancellable.append(cancelable)
                 }
-                
             })
     }
-    func checkAnswer(_ answer:String){
-        if(answer == "T" || answer == "F" ){
-            if(self.chest.answer == answer){
-                responseMessage = "answer correct"
-                let points = chest.point ?? 0
-                gameVM.score += points
-                gameVM.updateScore(userID: settingStorage.userID, session: session)
-                print("game score: \(gameVM.score)")
-            }else if(self.chest.answer != answer){
-                responseMessage = "answer wrong"
+    
+    func submitMultimediaAnswer() {
+        let parameters: [String: String] = [
+            "user_id": "\(settingStorage.userID)",
+            "chest_id": "\(chest.id)",
+            "game_id": "\(session.gameID)",
+            "lat": "\(locationManager.coordinateRegion.center.latitude)",
+            "lng": "\(locationManager.coordinateRegion.center.longitude)",
+            "point": "\(chest.point ?? 0)",
+            "txt": textInEditor
+        ]
+        
+        var inputData: Data?
+        var mimeType: String = ""
+        
+        switch answerType {
+        case .image:
+            if let imageData = mediaData {
+                inputData = imageData
+                mimeType = "image/jpeg"
+            } else if let jpegData = image.jpegData(compressionQuality: 0.8) {
+                inputData = jpegData
+                mimeType = "image/jpeg"
+            }
+        case .audio:
+            if let audioURL = audioURL {
+                inputData = try? Data(contentsOf: audioURL)
+                mimeType = "audio/m4a"
+            }
+        case .text:
+            inputData = textInEditor.data(using: .utf8)
+            mimeType = "text/plain"
+        }
+        
+        guard let uploadData = inputData else {
+            responseMessage = "No data to upload"
+            showMessage = true
+            return
+        }
+        
+        // Debug prints
+        print("Uploading with parameters:", parameters)
+        print("MIME Type:", mimeType)
+        print("Upload Data Size:", uploadData.count)
+        
+        let url = uploadMediaAnswerUrl
+        
+        AF.upload(multipartFormData: { multipartFormData in
+            // Add parameters
+            for (key, value) in parameters {
+                multipartFormData.append(Data(value.utf8), withName: key)
             }
             
-        }else if (answer == "A" || answer == "B" || answer == "C" || answer == "D" ){
-            if(self.chest.answer == answer){
+            // Add file with the correct field name
+            multipartFormData.append(uploadData,
+                                   withName: "data",  // Match the field name expected by the server
+                                   fileName: "file.\(mimeType.split(separator: "/")[1])",
+                                   mimeType: mimeType)
+        }, to: url)
+        .validate()
+        .response { response in  // Changed from responseDecodable to response
+            print("Full Response:", response.debugDescription)
+            
+            DispatchQueue.main.async {
+                // Consider 200 status code as success, regardless of response body
+                if response.response?.statusCode == 200 {
+                    if let index = self.gameVM.chestList.firstIndex(of: self.chest) {
+                        self.gameVM.chestList.remove(at: index)
+                    }
+                    self.responseMessage = "Answer submitted successfully"
+                    self.showMessage = true
+                } else {
+                    print("Upload failed with status code:", response.response?.statusCode ?? -1)
+                    if let data = response.data, let errorStr = String(data: data, encoding: .utf8) {
+                        print("Error response:", errorStr)
+                    }
+                    self.responseMessage = "Failed to submit answer"
+                    self.showMessage = true
+                }
+            }
+        }
+    }
+
+
+    
+    func checkAnswer(_ answer: String) {
+        if(answer == "T" || answer == "F" ) {
+            if(self.chest.answer == answer) {
                 responseMessage = "answer correct"
                 let points = chest.point ?? 0
                 gameVM.score += points
-                gameVM.updateScore(userID: settingStorage.userID, session: session)
+                gameVM.updateScore(userID: self.settingStorage.userID, session: session)
                 print("game score: \(gameVM.score)")
-            }else if(self.chest.answer != answer){
+            } else if(self.chest.answer != answer) {
                 responseMessage = "answer wrong"
             }
-        }else{  //問答題
-            if(self.chest.answer == answer){
+        } else if (answer == "A" || answer == "B" || answer == "C" || answer == "D" ) {
+            if(self.chest.answer == answer) {
                 responseMessage = "answer correct"
                 let points = chest.point ?? 0
                 gameVM.score += points
-                gameVM.updateScore(userID: settingStorage.userID, session: session)
+                gameVM.updateScore(userID: self.settingStorage.userID, session: session)
                 print("game score: \(gameVM.score)")
-            }else if(self.chest.answer != answer){
+            } else if(self.chest.answer != answer) {
+                responseMessage = "answer wrong"
+            }
+        } else {  //問答題
+            if(self.chest.answer == answer) {
+                responseMessage = "answer correct"
+                let points = chest.point ?? 0
+                gameVM.score += points
+                gameVM.updateScore(userID: self.settingStorage.userID, session: session)
+                print("game score: \(gameVM.score)")
+            } else if(self.chest.answer != answer) {
                 responseMessage = "answer wrong"
             }
         }
         showMessage = true
         chestMinus(answer: answer, correctness: "\(self.chest.answer == answer ? "1" : "0")")
     }
-    func insertAnswer(answer:String,correctness:String){
-        let url = insertAnswerUrl
-        let parameters:[String:String] = [
-            "user_id": "\(settingStorage.userID)",
-            "game_id":"\(session.gameID)",
-            "chest_id":"\(chest.id)",
-            "answer":answer,
-            "point":"\(String(describing: chest.point ?? 0))",
-            "correctness":correctness,
-            "lat":String(describing: locationManager.coordinateRegion.center.latitude),
-            "lng":String(describing: locationManager.coordinateRegion.center.longitude),
-        ]
-        let publisher:DataResponsePublisher<String> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
-        self.chestCancellable = publisher
-            .sink(receiveValue: {(values) in
-                //                print(values.data?.JsonPrint())
-//                print(values.debugDescription)
-                if answer == self.chest.answer {
-                    responseMessage = "answer correct"
-                    gameVM.score += chest.point ?? 0
-                }
-                else { responseMessage = "answer wrong" }
-                showMessage = true
-            })
-    }
-    func chestMinus(answer:String,correctness:String){
-        let url = chestMinusUrl
-        let parameters:[String:String] = [
-            "user_id": "\(settingStorage.userID)",
-            "game_id":"\(session.gameID)",
-            "chest_id":"\(chest.id)",
-            "user_answer":answer,
-            "lat":String(describing: locationManager.coordinateRegion.center.latitude),
-            "lng":String(describing: locationManager.coordinateRegion.center.longitude),
-        ]
-        let publisher:DataResponsePublisher<String> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
-        self.minusCancellable = publisher
-            .sink(receiveValue: {(values) in
-                print(values.debugDescription)
-//                if let value = values.value{
-//                    print(value)
-//                }
-                
-            })
-    }
     
-}
-//struct ChestDetailView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ChestDetailView(chest: testChest, session:testSession, chestMedia: []).answerBoxSelector(3)
-//            .environmentObject(SettingStorage())
-//            .environmentObject(LocationManager())
-//    }
-//}
-struct ButtonArray:View {
-    var text1:String
-    var text2:String
-    var text3:String
-    var body: some View {
-        HStack(spacing: 5){
-            Button(action: {
-                
-            }, label: {
-                Text(text1)
-                    .frame(width: UIScreen.main.bounds.width/3 - 30, height: 30)
-                    .foregroundColor(.white)
-                    .background(Color.blue)
-                    
-
-            })
+    func insertAnswer(answer: String, correctness: String) {
+            let url = insertAnswerUrl
+            let parameters: [String:String] = [
+                "user_id": "\(settingStorage.userID)",
+                "game_id": "\(session.gameID)",
+                "chest_id": "\(chest.id)",
+                "answer": answer,
+                "point": "\(String(describing: chest.point ?? 0))",
+                "correctness": correctness,
+                "lat": String(describing: locationManager.coordinateRegion.center.latitude),
+                "lng": String(describing: locationManager.coordinateRegion.center.longitude),
+            ]
             
-            Button(action: {
-                
-            }, label: {
-                Text(text2)
-                    .frame(width: UIScreen.main.bounds.width/3 - 30, height: 30)
-                    .foregroundColor(.white)
-                    .background(Color.blue)
-                    
-            })
-            
-            Button(action: {
-                
-            }, label: {
-                Text(text3)
-                    .frame(width: UIScreen.main.bounds.width/3 - 30, height: 30)
-                    .foregroundColor(.white)
-                    .background(Color.blue)
-            })
+            let publisher: DataResponsePublisher<String> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+            self.chestCancellable = publisher
+                .sink(receiveValue: { values in
+                    if answer == self.chest.answer {
+                        self.responseMessage = "answer correct"
+                        self.gameVM.score += self.chest.point ?? 0
+                    } else {
+                        self.responseMessage = "answer wrong"
+                    }
+                    self.showMessage = true
+                })
         }
-    }
-}
+       
+       func chestMinus(answer: String, correctness: String) {
+           let url = chestMinusUrl
+           let parameters: [String:String] = [
+               "user_id": "\(settingStorage.userID)",
+               "game_id": "\(session.gameID)",
+               "chest_id": "\(chest.id)",
+               "user_answer": answer,
+               "lat": "\(locationManager.coordinateRegion.center.latitude)",
+               "lng": "\(locationManager.coordinateRegion.center.longitude)",
+           ]
+           
+           let publisher: DataResponsePublisher<String> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+           self.minusCancellable = publisher
+               .sink(receiveValue: { values in
+                   print(values.debugDescription)
+               })
+       }
+   }
