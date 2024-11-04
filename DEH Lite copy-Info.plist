@@ -45,6 +45,8 @@
 	<string>為了能在進行遊戲時使用相機，我們需要您相機的許可權</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>為了能搜尋您附近的景點，我們想要獲得取得您目前的位置的許可權</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need to access your microphone</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

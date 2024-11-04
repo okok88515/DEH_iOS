@@ -30,42 +30,79 @@ struct AudioRecordView: View {
     @Binding var recorder: Sounds?
     @Environment(\.presentationMode) var presentationMode
     @State private var isRecording = false
-    
+    @State private var showPermissionDeniedAlert = false
+
     var body: some View {
-        VStack {
-            if isRecording {
-                Text("Recording...")
-                    .foregroundColor(.red)
+        VStack(spacing: 40) {
+            Text("Record Your Answer")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
+                .padding(.top, 20)
+            
+            VStack {
+                Button(action: {
+                    if isRecording {
+                        recorder?.stopRecord()
+                        audioURL = recorder?.tempVideoFileUrl
+                        isRecording = false
+                        presentationMode.wrappedValue.dismiss()
+                    } else {
+                        AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                            DispatchQueue.main.async {
+                                if granted {
+                                    recorder = Sounds()
+                                    recorder?.recordSounds()
+                                    isRecording = true
+                                } else {
+                                    showPermissionDeniedAlert = true
+                                }
+                            }
+                        }
+                    }
+                }) {
+                    Image(systemName: isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                        .resizable()
+                        .frame(width: 100, height: 100)
+                        .foregroundColor(isRecording ? .red : .blue)
+                        .shadow(color: .gray.opacity(0.5), radius: 10, x: 0, y: 5)
+                }
+                
+                Text(isRecording ? "Recording in Progress..." : "Press to Start Recording")
+                    .foregroundColor(.secondary)
+                    .font(.headline)
+                    .padding(.top, 8)
             }
             
-            Button(action: {
-                if isRecording {
-                    recorder?.stopRecord()
-                    audioURL = recorder?.tempVideoFileUrl
-                    isRecording = false
-                    presentationMode.wrappedValue.dismiss()
-                } else {
-                    recorder = Sounds()
-                    recorder?.recordSounds()
-                    isRecording = true
-                }
-            }) {
-                Text(isRecording ? "Stop Recording" : "Start Recording")
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(8)
-            }
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(UIColor.systemGroupedBackground))
+        .cornerRadius(15)
+        .padding()
+        .alert(isPresented: $showPermissionDeniedAlert) {
+            Alert(
+                title: Text("Microphone Access Denied"),
+                message: Text("Please enable microphone access in Settings to record audio."),
+                primaryButton: .default(Text("Open Settings"), action: {
+                    if let appSettings = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(appSettings)
+                    }
+                }),
+                secondaryButton: .cancel()
+            )
         }
     }
 }
 
+
+
 struct ChestDetailView: View {
     @ObservedObject var locationManager = LocationManager()
-    @EnvironmentObject var settingStorage:SettingStorage
-    @StateObject var gameVM:GameViewModel
+    @EnvironmentObject var settingStorage: SettingStorage
+    @StateObject var gameVM: GameViewModel
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    @State var playVideo = false
+    @State private var playVideo = false
     @State private var chestCancellable: AnyCancellable?
     @State private var minusCancellable: AnyCancellable?
     @State private var mediaCancellable: [AnyCancellable] = []
@@ -78,7 +115,7 @@ struct ChestDetailView: View {
     @State var answer = ""
     @State var showMessage = false
     @State var responseMessage: String = ""
-    @State var textInEditor = "Answer"
+    @State var textInEditor = ""
     @State var selection: Int? = nil
     @State var mediaData: Data? = nil
     @State var recoder: Sounds? = nil
@@ -96,45 +133,57 @@ struct ChestDetailView: View {
 
     var body: some View {
         ZStack {
-            Color.init(UIColor(rgba: lightGreen))
+            Color.init(UIColor.systemGray5)
+                .edgesIgnoringSafeArea(.all)
+
             GeometryReader { geometry in
-                VStack {
+                VStack(spacing: 20) {
                     PagingView(index: $index.animation(), maxIndex: medias.count - 1) {
                         ForEach(self.medias, id: \.data) { singleMedia in
                             singleMedia.view()
                         }
                     }
                     .frame(height: geometry.size.height * 0.4)
-                    
+
                     ScrollView {
                         HStack {
                             Spacer()
                             Text("Question:")
                                 .multilineTextAlignment(.center)
                                 .frame(height: geometry.size.height * 0.03)
-                                .font(.system(size: 20))
+                                .font(.system(size: 20, weight: .bold))
                             Spacer()
-                            Button {
+                            Button(action: {
                                 self.presentationMode.wrappedValue.dismiss()
-                            } label: {
+                            }) {
                                 Text("Done")
+                                    .font(.headline)
                             }
                         }
                         Divider()
                         Text(chest.question)
-                            .frame(height: geometry.size.height * 0.15)
-                        
+                            .font(.body)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(12)
+                            .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
+                            .frame(maxWidth: .infinity, maxHeight: geometry.size.height * 0.15)
+
                         answerBoxSelector(chest.questionType, geometry)
-                            .alert(isPresented: $showMessage) {() -> Alert in
-                                return Alert(title: Text(responseMessage),
-                                           dismissButton: .default(Text("Ok"), action: {
-                                    self.presentationMode.wrappedValue.dismiss()
-                                }))
+                            .alert(isPresented: $showMessage) {
+                                Alert(
+                                    title: Text(responseMessage),
+                                    dismissButton: .default(Text("Ok"), action: {
+                                        self.presentationMode.wrappedValue.dismiss()
+                                    })
+                                )
                             }
                         Spacer()
                     }
                 }
-                .onAppear() {
+                .padding()
+                .onAppear {
                     getChestMedia()
                 }
                 .sheet(isPresented: $isShowPhotoLibrary) {
@@ -158,17 +207,23 @@ extension ChestDetailView {
         switch questionType {
         case 1: // True/False
             HStack {
-                Button(action: {checkAnswer("T")}, label: {
+                Button(action: { checkAnswer("T") }) {
                     Image(systemName: "checkmark.circle")
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                })
-                Button(action: {checkAnswer("F")}, label: {
+                        .frame(width: 60, height: 60)
+                        .foregroundColor(.green)
+                }
+                Button(action: { checkAnswer("F") }) {
                     Image(systemName: "xmark.circle")
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                })
+                        .frame(width: 60, height: 60)
+                        .foregroundColor(.red)
+                }
             }
+            .padding()
+        
         case 2: // Multiple Choice
             VStack {
                 HStack {
@@ -180,7 +235,11 @@ extension ChestDetailView {
                     buttonViewer(answer: "D", option: chest.option4 ?? "")
                 }
             }
+            .padding()
             .background(Color.white)
+            .cornerRadius(12)
+            .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
+        
         case 3: // Essay/Media Question
             VStack {
                 Picker("Answer Type", selection: $answerType) {
@@ -190,21 +249,38 @@ extension ChestDetailView {
                 }
                 .pickerStyle(SegmentedPickerStyle())
                 .padding()
-                
+                .background(Color.blue.opacity(0.2))
+                .cornerRadius(12)
+                .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
+
                 switch answerType {
                 case .text:
-                    TextEditor(text: $textInEditor)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .frame(height: (geometry?.size.height ?? 0) * 0.2)
+                    ZStack(alignment: .leading) {
+                        if textInEditor.isEmpty {
+                            Text("Please enter here")
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 8)
+                        }
+                        TextEditor(text: $textInEditor)
+                            .padding(8)
+                            .frame(height: (geometry?.size.height ?? 0) * 0.2)
+                            .background(Color.white)
+                            .cornerRadius(12)
+                            .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 3)
+                    }
+                
                 case .image:
                     VStack {
                         if let media = mediaData.flatMap({ data in MediaMulti(data: data, format: .Picture) }) {
                             media.view()
+                                .frame(height: 200)
                         } else {
                             Image(uiImage: self.image)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(height: 200)
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(12)
                         }
                         
                         Button(action: {
@@ -216,13 +292,14 @@ extension ChestDetailView {
                                 Text("Choose Photo")
                                     .font(.headline)
                             }
-                            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 50)
+                            .frame(maxWidth: .infinity, minHeight: 50)
                             .background(Color.blue)
                             .foregroundColor(.white)
                             .cornerRadius(20)
                             .padding(.horizontal)
                         }
                     }
+                
                 case .audio:
                     VStack {
                         if let url = audioURL {
@@ -235,7 +312,7 @@ extension ChestDetailView {
                             showAudioRecorder = true
                         }
                         .foregroundColor(.white)
-                        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 50)
+                        .frame(maxWidth: .infinity, minHeight: 50)
                         .background(Color.blue)
                         .cornerRadius(20)
                         .padding(.horizontal)
@@ -249,33 +326,41 @@ extension ChestDetailView {
                     } else {
                         submitMultimediaAnswer()
                     }
-                }, label: {
+                }) {
                     Text("Submit Answer")
-                        .frame(width: UIScreen.main.bounds.width-20, height: 50)
-                        .foregroundColor(.white)
+                        .font(.headline)
+                        .frame(width: UIScreen.main.bounds.width - 40, height: 50)
                         .background(Color.yellow)
-                        .cornerRadius(8)
-                })
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
+                }
                 .padding(.top)
             }
+        
         default:
             EmptyView()
         }
     }
     
     @ViewBuilder func buttonViewer(answer: String, option: String) -> some View {
-        Button(action: {checkAnswer(answer)}, label: {
+        Button(action: { checkAnswer(answer) }) {
             Text(option)
                 .fontWeight(.bold)
                 .font(.title)
-                .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 0, idealHeight: 100, maxHeight: .infinity, alignment: .center)
+                .frame(minWidth: 100, minHeight: 100)
+                .background(Color.white)
+                .cornerRadius(12)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.init(UIColor(rgba:lightGreen)), lineWidth: 5)
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.init(UIColor(rgba: lightGreen)), lineWidth: 5)
                 )
-        })
+                .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
+                .padding()
+        }
     }
 }
+
 
 extension ChestDetailView {
     func getChestMedia() {
@@ -466,3 +551,5 @@ extension ChestDetailView {
                })
        }
    }
+
+
