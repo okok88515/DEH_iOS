@@ -130,3 +130,7 @@
 "Region SOI" = "地域ストーリー";
 
 "Are you sure you want to end the game?" = "本当にゲームを終了してもよろしいですか？";
+"Answer Type" = "回答タイプ";
+"Image" = "画像";
+"Audio" = "オーディオ";
+"Text" = "文章";

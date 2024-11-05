@@ -141,3 +141,7 @@
 
 "End game" = "結束遊戲";
 "Are you sure you want to end the game?" = "確定要結束遊戲嗎?";
+"Answer Type" = "回答類型";
+"Image" = "圖片";
+"Audio" = "語音";
+"Text" = "文字";

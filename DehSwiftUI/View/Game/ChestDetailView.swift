@@ -242,16 +242,30 @@ extension ChestDetailView {
         
         case 3: // Essay/Media Question
             VStack {
-                Picker("Answer Type", selection: $answerType) {
-                    Text("Text").tag(AnswerType.text)
-                    Text("Image").tag(AnswerType.image)
-                    Text("Audio").tag(AnswerType.audio)
+                Menu {
+                    Button("Text") {
+                        answerType = .text
+                    }
+                    Button("Image") {
+                        answerType = .image
+                    }
+                    Button("Audio") {
+                        answerType = .audio
+                    }
+                } label: {
+                    HStack {
+                        Text("\("Answer Type".localized): \(answerType == .text ? "Text".localized : answerType == .image ? "Image".localized : "Audio".localized)")
+                            .font(.headline)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue.opacity(0.2))
+                    .cornerRadius(12)
+                    .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
                 }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding()
-                .background(Color.blue.opacity(0.2))
-                .cornerRadius(12)
-                .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
+                .padding(.horizontal)
 
                 switch answerType {
                 case .text:
@@ -337,7 +351,6 @@ extension ChestDetailView {
                 }
                 .padding(.top)
             }
-        
         default:
             EmptyView()
         }
