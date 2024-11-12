@@ -219,7 +219,7 @@ extension XOIDetail{
         //            "Voice": 2,
         //            "Picture": 1,
         //        ]
-        if let _ = xoi.media_set{
+        if !xoi.media_set.isEmpty{
             //
             for (_,media) in xoi.media_set.enumerated(){
                 if media.media_format == 0 || media.media_type == ""{

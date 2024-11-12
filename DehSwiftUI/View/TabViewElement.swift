@@ -238,9 +238,10 @@ struct TabViewElement: View {
     
 }
 extension TabViewElement{
-    func searchXOIs(action:String){
-        print("User icon pressed...")
+    func searchXOIs(action: String) {
+        print("Searching XOIs with action: \(action)")
         
+        // Validation checks
         if (group.id == 0) && (tabItemName == "group") {
             alertString = "please choose group".localized
             alertState = true
@@ -251,9 +252,24 @@ extension TabViewElement{
             alertState = true
             return
         }
-        let parameters:[String:String] = [
-            "username": "\(settingStorage.account)",
-            "lat" :"\(locationManager.coordinateRegion.center.latitude)",
+        
+        // Determine XOI category from action
+        let xoiCategory: String
+        if action.contains("POI") {
+            xoiCategory = "poi"
+        } else if action.contains("LOI") {
+            xoiCategory = "loi"
+        } else if action.contains("AOI") {
+            xoiCategory = "aoi"
+        } else if action.contains("SOI") {
+            xoiCategory = "soi"
+        } else {
+            xoiCategory = "poi" // default
+        }
+        
+        let parameters: [String: String] = [
+            "username": settingStorage.account,
+            "lat": "\(locationManager.coordinateRegion.center.latitude)",
             "lng": "\(locationManager.coordinateRegion.center.longitude)",
             "dis": "\(settingStorage.searchDistance * 1000)",
             "num": "\(settingStorage.searchNumber)",
@@ -262,29 +278,79 @@ extension TabViewElement{
             "user_id": "\(settingStorage.userID)",
             "group_id": "\(group.id)",
             "region_id": "\(region.id)",
-            "language": "中文",
+            "language": "中文"
         ]
-        print(action)
-        let url = getXois[action] ?? ""
-        let publisher:DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
-        self.cancellable = publisher
-            .sink(receiveValue: {(values) in
-//                print(values.data?.JsonPrint())
-//                print(values.debugDescription)
-//                print(values.value?.results[0].containedXOIs)
-                let xois = values.value?.results
-                if  xois != [] {
-                    self.settingStorage.XOIs[tabItemName] = xois
-                    self.settingStorage.mapType = tabItemName
-                    hide_listState = false
-                }
-                else {
-                    alertString = "No Data".localized
-                    alertState = true
-                }
-                
-            })
         
+        print("Search Parameters: \(parameters)")
+        
+        // Use appropriate URL based on XOI type
+        let baseUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/users"
+        let searchUrl: String
+        switch xoiCategory {
+            case "poi":
+                searchUrl = "\(baseUrl)/poisJSONResponseNormalize"
+            case "loi":
+                searchUrl = "\(baseUrl)/loisJSONResponseNormalize"
+            case "aoi":
+                searchUrl = "\(baseUrl)/aoisJSONResponseNormalize"
+            case "soi":
+                searchUrl = "\(baseUrl)/soisJSONResponseNormalize"
+            default:
+                searchUrl = "\(baseUrl)/poisJSONResponseNormalize"
+        }
+        
+        let publisher: DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(
+            url: searchUrl,
+            para: parameters
+        )
+        
+        self.cancellable = publisher
+            .sink(
+                receiveCompletion: { completion in
+                    switch completion {
+                    case .finished:
+                        print("Search request completed")
+                    case .failure(let error):
+                        print("Search failed with error: \(error)")
+                        DispatchQueue.main.async {
+                            self.alertString = "Error loading data"
+                            self.alertState = true
+                        }
+                    }
+                },
+                receiveValue: { response in
+                    // Debug print raw response
+                    if let data = response.data,
+                       let jsonString = String(data: data, encoding: .utf8) {
+                        print("Raw response: \(jsonString)")
+                    }
+                    
+                    DispatchQueue.main.async {
+                        if let xois = response.value?.results {
+                            if !xois.isEmpty {
+                                print("Found \(xois.count) \(xoiCategory.uppercased())s")
+                                // Set the correct category for each XOI
+                                let categorizedXois = xois.map { xoi -> XOI in
+                                    var updatedXoi = xoi
+                                    updatedXoi.xoiCategory = xoiCategory
+                                    return updatedXoi
+                                }
+                                self.settingStorage.XOIs[self.tabItemName] = categorizedXois
+                                self.settingStorage.mapType = self.tabItemName
+                                self.hide_listState = false
+                            } else {
+                                print("No \(xoiCategory.uppercased())s found")
+                                self.alertString = "No data found".localized
+                                self.alertState = true
+                            }
+                        } else {
+                            print("Failed to decode response")
+                            self.alertString = "Error loading data".localized
+                            self.alertState = true
+                        }
+                    }
+                }
+            )
     }
     func actionSheetBuilder(tabItemName:String) -> ActionSheet{
         print(tabItemName)

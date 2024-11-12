@@ -181,70 +181,47 @@ class MapViewModel:ObservableObject {
         MKMapItem.openMaps(with: [srcLocation, dstLocation], launchOptions: options)
     }
     //set media data in place
-    func getMedia(xoi: XOI){
-        
-        //        let format = [
-        //            "Commentary": 8,
-        //            "Video": 4,
-        //            "Voice": 2,
-        //            "Picture": 1,
-        //        ]
-        if let _ = xoi.media_set{
-            //
-            for (_,media) in xoi.media_set.enumerated(){
-                if media.media_format == 0 || media.media_type == ""{
-                    medias = [MediaMulti(data: UIImage(imageLiteralResourceName: "none").pngData() ?? Data(), format: format.Picture)]
+    func getMedia(xoi: XOI) {
+            // Clear existing media first
+            medias.removeAll()
+            
+            // Check if media_set is empty
+            if xoi.media_set.isEmpty {
+                // If no media_set, add default image
+                medias = [MediaMulti(data: UIImage(imageLiteralResourceName: "none").pngData() ?? Data(),
+                                   format: format.Picture)]
+                return
+            }
+            
+            // Process each media item
+            for media in xoi.media_set {
+                if media.media_format == 0 || media.media_type.isEmpty {
+                    medias = [MediaMulti(data: UIImage(imageLiteralResourceName: "none").pngData() ?? Data(),
+                                       format: format.Picture)]
                     continue
                 }
-                let url = media.media_url
-                let publisher:DataResponsePublisher = NetworkConnector().getMediaPublisher(url: url)
                 
-                //            self.mediaCancellable[index] = publisher
+                let url = media.media_url
+                let publisher = NetworkConnector().getMediaPublisher(url: url)
+                
                 let cancelable = publisher
-                    .sink(receiveValue: {(values) in
-                        if let formatt = format(rawValue: media.media_format){
-                            if let data = values.data{
-                                switch formatt{
-                                case format.Commentary:
-                                    self.commentary = MediaMulti(data:data,format: formatt)
-                                case .Video:
-                                    fallthrough
-                                case .Voice:
-                                    fallthrough
-                                case .Picture:
-                                    self.medias.append(MediaMulti(data:data,format: formatt))
-                                case .Default:
-                                    print("default")
-                                }
-                                
+                    .sink(receiveValue: { [weak self] (values) in
+                        guard let self = self else { return }
+                        
+                        if let formatt = format(rawValue: media.media_format),
+                           let data = values.data {
+                            switch formatt {
+                            case format.Commentary:
+                                self.commentary = MediaMulti(data: data, format: formatt)
+                            case .Video, .Voice, .Picture:
+                                self.medias.append(MediaMulti(data: data, format: formatt))
+                            case .Default:
+                                print("default format")
                             }
                         }
-                        //                    print(values.data?.JsonPrint())
-                        switch media.media_format{
-                        case format.Commentary.rawValue:
-                            print("Commentary")
-                        case format.Video.rawValue:
-                            print("Video")
-                        case format.Voice.rawValue:
-                            print("Voice")
-                        case format.Picture.rawValue:
-                            print("Picture")
-                            //                        print(values.debugDescription)
-                            //                        images.append(UIImage(data: values.data ?? Data()) ?? UIImage())
-                        default:
-                            print()
-                        }
-                        //                    self.mediaCancellable?.cancel()
-                        
-                        
                     })
+                
                 self.mediaCancellable.append(cancelable)
-                //
             }
         }
-        else{
-            medias = [MediaMulti(data: UIImage(imageLiteralResourceName: "none").pngData() ?? Data(), format: format.Picture)]
-            //            images = [UIImage(imageLiteralResourceName: "none")]
-        }
-    }
 }
