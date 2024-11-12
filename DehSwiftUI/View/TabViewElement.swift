@@ -239,21 +239,16 @@ struct TabViewElement: View {
 }
 extension TabViewElement{
     func searchXOIs(action: String) {
-        print("Searching XOIs with action: \(action)")
+        print("User icon pressed...")
         
-        // Validation checks
+        // Only check group selection for group tab
         if (group.id == 0) && (tabItemName == "group") {
             alertString = "please choose group".localized
             alertState = true
             return
         }
-        if (settingStorage.XOIs["nearby"] == []) && (tabItemName == "nearby") {
-            alertString = "No data".localized
-            alertState = true
-            return
-        }
         
-        // Determine XOI category from action
+        // Determine XOI category from action (for proper mapping later)
         let xoiCategory: String
         if action.contains("POI") {
             xoiCategory = "poi"
@@ -264,7 +259,7 @@ extension TabViewElement{
         } else if action.contains("SOI") {
             xoiCategory = "soi"
         } else {
-            xoiCategory = "poi" // default
+            xoiCategory = "poi"
         }
         
         let parameters: [String: String] = [
@@ -281,76 +276,35 @@ extension TabViewElement{
             "language": "中文"
         ]
         
-        print("Search Parameters: \(parameters)")
-        
-        // Use appropriate URL based on XOI type
-        let baseUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/users"
-        let searchUrl: String
-        switch xoiCategory {
-            case "poi":
-                searchUrl = "\(baseUrl)/poisJSONResponseNormalize"
-            case "loi":
-                searchUrl = "\(baseUrl)/loisJSONResponseNormalize"
-            case "aoi":
-                searchUrl = "\(baseUrl)/aoisJSONResponseNormalize"
-            case "soi":
-                searchUrl = "\(baseUrl)/soisJSONResponseNormalize"
-            default:
-                searchUrl = "\(baseUrl)/poisJSONResponseNormalize"
-        }
-        
+        print(action)
+        let url = getXois[action] ?? ""
         let publisher: DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(
-            url: searchUrl,
+            url: url,
             para: parameters
         )
         
         self.cancellable = publisher
-            .sink(
-                receiveCompletion: { completion in
-                    switch completion {
-                    case .finished:
-                        print("Search request completed")
-                    case .failure(let error):
-                        print("Search failed with error: \(error)")
-                        DispatchQueue.main.async {
-                            self.alertString = "Error loading data"
-                            self.alertState = true
+            .sink(receiveValue: { (values) in
+                if let xois = values.value?.results {
+                    if !xois.isEmpty {
+                        // Set the correct category for each XOI
+                        let categorizedXois = xois.map { xoi -> XOI in
+                            let updatedXoi = xoi
+                            updatedXoi.xoiCategory = xoiCategory
+                            return updatedXoi
                         }
+                        self.settingStorage.XOIs[self.tabItemName] = categorizedXois
+                        self.settingStorage.mapType = self.tabItemName
+                        self.hide_listState = false
+                    } else {
+                        self.alertString = "No Data".localized
+                        self.alertState = true
                     }
-                },
-                receiveValue: { response in
-                    // Debug print raw response
-                    if let data = response.data,
-                       let jsonString = String(data: data, encoding: .utf8) {
-                        print("Raw response: \(jsonString)")
-                    }
-                    
-                    DispatchQueue.main.async {
-                        if let xois = response.value?.results {
-                            if !xois.isEmpty {
-                                print("Found \(xois.count) \(xoiCategory.uppercased())s")
-                                // Set the correct category for each XOI
-                                let categorizedXois = xois.map { xoi -> XOI in
-                                    var updatedXoi = xoi
-                                    updatedXoi.xoiCategory = xoiCategory
-                                    return updatedXoi
-                                }
-                                self.settingStorage.XOIs[self.tabItemName] = categorizedXois
-                                self.settingStorage.mapType = self.tabItemName
-                                self.hide_listState = false
-                            } else {
-                                print("No \(xoiCategory.uppercased())s found")
-                                self.alertString = "No data found".localized
-                                self.alertState = true
-                            }
-                        } else {
-                            print("Failed to decode response")
-                            self.alertString = "Error loading data".localized
-                            self.alertState = true
-                        }
-                    }
+                } else {
+                    self.alertString = "No Data".localized
+                    self.alertState = true
                 }
-            )
+            })
     }
     func actionSheetBuilder(tabItemName:String) -> ActionSheet{
         print(tabItemName)
