@@ -129,75 +129,147 @@ class GameViewModel: ObservableObject {
         }
     }
     
+    
+    
     func getGameData(session: SessionModel, completion: @escaping () -> Void) {
         let url = getGameDataUrl
-        let parameters = ["room_id": session.id]
+        let parameters: [String: Any] = [
+            "sessionId": session.id
+        ]
         
-        print("session info")
-        print(session.id)
-        print(session.gameID)
-        print(session.name)
-        print(session.status)
+        print("=== GetGameData API Call ===")
+        print("URL:", url)
+        print("Parameters:", parameters)
         
-        let publisher: DataResponsePublisher<[GameData]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<GameDataResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         self.cancellable3 = publisher
             .sink(receiveValue: { [weak self] (values) in
-                print(values.debugDescription)
+                print("\n=== GetGameData Response ===")
+                if let statusCode = values.response?.statusCode {
+                    print("HTTP Status Code:", statusCode)
+                }
                 
-                if let gameData = values.value?.first {
-                    print("gamedata info")
-                    print(gameData.id)
-                    print(gameData.game_id)
-                    print(gameData.room_id)
-                    session.gameID = gameData.game_id
-                    print("session gameID after changing")
-                    print(session.gameID)
+                // Print raw response data
+                if let data = values.data, let rawString = String(data: data, encoding: .utf8) {
+                    print("Raw Response Data:", rawString)
+                }
+                
+                if let error = values.error {
+                    print("Decoding Error:", error)
+                    if let underlyingError = (error.underlyingError as? DecodingError) {
+                        switch underlyingError {
+                        case .typeMismatch(let type, let context):
+                            print("Type Mismatch: expected \(type) at path:", context.codingPath)
+                        case .valueNotFound(let type, let context):
+                            print("Value Not Found: \(type) at path:", context.codingPath)
+                        case .keyNotFound(let key, let context):
+                            print("Key Not Found: \(key) at path:", context.codingPath)
+                        case .dataCorrupted(let context):
+                            print("Data Corrupted at path:", context.codingPath)
+                            print("Debug Description:", context.debugDescription)
+                        @unknown default:
+                            print("Unknown decoding error")
+                        }
+                    }
+                    completion()
+                    return
+                }
+                
+                if let gameData = values.value?.results.first {
+                    print("Game data decoded successfully")
+                    print("Decoded data:", gameData)
+                    session.gameID = gameData.game_id  // Using eventId from backend
                 } else {
-                    print("No Game Data available.")
+                    print("No game data in response")
+                    completion()
+                    return
+                }
+                
+                guard let endTime = values.value?.results.first?.end_time else {
+                    print("No end time in response")
+                    completion()
+                    return
                 }
                 
                 let formatter = DateFormatter()
                 formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-               
-                guard let EndTime = values.value?[0].end_time
-                else {
-                    completion()  // Call completion even if there's no end time
-                    return
-                }
                 
                 let currentDate = Date()
-                let targetDate = formatter.date(from: String(EndTime))
+                let targetDate = formatter.date(from: endTime)
                 
                 let difference = Int(targetDate?.timeIntervalSince(currentDate) ?? 0)
                 
-                print("Remain Time:", difference)
                 if (difference < 0) {
                     self?.min = 0
                     self?.sec = 0
+                    print("Time expired")
                 } else {
-                    self?.min = (difference)/60
-                    self?.sec = (difference) % 60
+                    self?.min = difference / 60
+                    self?.sec = difference % 60
+                    print("Remaining time set - Min:", self?.min ?? 0, "Sec:", self?.sec ?? 0)
                 }
                 
-                completion()  // Call completion after all processing is done
+                print("=== GetGameData Completed ===\n")
+                completion()
             })
+        
+        print("API request initiated")
     }
-    
     func getChests(userID: String, session: SessionModel) {
         let url = getChestList
-        let parameters: [String:Any] = [
-            "user_id": userID,
-            "room_id": "\(session.id)"
+        let parameters: [String: Any] = [
+            "userId": userID,
+            "sessionId": session.id
         ]
-        let publisher: DataResponsePublisher<[ChestModel]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        
+        print("=== GetChests API Call ===")
+        print("URL:", url)
+        print("Parameters:", parameters)
+        
+        let publisher: DataResponsePublisher<ChestResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         self.cancellable = publisher
-            .sink(receiveValue: {(values) in
-                print(values.debugDescription)
-                if let value = values.value {
-                    self.chestList = value
+            .sink(receiveValue: { [weak self] (values) in
+                print("\n=== GetChests Response ===")
+                if let statusCode = values.response?.statusCode {
+                    print("HTTP Status Code:", statusCode)
                 }
-                print(self.chestList)
+                
+                if let data = values.data, let rawString = String(data: data, encoding: .utf8) {
+                    print("Raw Response Data:", rawString)
+                }
+                
+                if let error = values.error {
+                    print("Decoding Error:", error)
+                    if let underlyingError = (error.underlyingError as? DecodingError) {
+                        switch underlyingError {
+                        case .typeMismatch(let type, let context):
+                            print("Type Mismatch: expected \(type) at path:", context.codingPath)
+                        case .valueNotFound(let type, let context):
+                            print("Value Not Found: \(type) at path:", context.codingPath)
+                        case .keyNotFound(let key, let context):
+                            print("Key Not Found: \(key) at path:", context.codingPath)
+                        case .dataCorrupted(let context):
+                            print("Data Corrupted at path:", context.codingPath)
+                            print("Debug Description:", context.debugDescription)
+                        @unknown default:
+                            print("Unknown decoding error")
+                        }
+                    }
+                    return
+                }
+                
+                if let chests = values.value?.results {
+                    print("Chests decoded successfully")
+                    print("Number of chests:", chests.count)
+                    self?.chestList = chests
+                } else {
+                    print("No chest data in response")
+                }
+                
+                print("=== GetChests Completed ===\n")
             })
+        
+        print("API request initiated")
     }
     func updateScore(userID: String, session: SessionModel) {
         let url = getUserAnswerRecord

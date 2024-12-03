@@ -8,21 +8,47 @@
 
 import Foundation
 
-class GameData:Decodable{
-    var start_time:String
-    var end_time:String
-    var play_time:Int
-    var room_id:Int
-    var id:Int
-    var game_id:Int
-    enum CodingKeys: String, CodingKey{
-        case id = "id" //roomid = session.id = this id
-        case room_id = "event_id_id" //this room_id is event_id, room_id is the above id
-        case start_time = "start_time"
-        case end_time = "end_time"
-        case play_time = "play_time"
-        case game_id = "game_id_id"
+struct GameDataResponse: Decodable {
+    let results: [GameData]
+    
+    private enum CodingKeys: String, CodingKey {
+        case results
     }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        var gamesArrayForResults: [GameData] = []
+        
+        // Try to decode as array
+        if let gameDataArray = try? container.decode([GameData].self, forKey: .results) {
+            gamesArrayForResults = gameDataArray
+        }
+        // If array decoding fails, try to decode as single object
+        else if let singleGame = try? container.decode(GameData.self, forKey: .results) {
+            gamesArrayForResults = [singleGame]
+        }
+        
+        self.results = gamesArrayForResults
+    }
+}
+
+class GameData: Decodable {
+    var start_time: String
+    var end_time: String
+    var play_time: Int
+    var room_id: Int
+    var id: Int
+    var game_id: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "id"               // From the LEFT JOIN EventHistory table
+        case room_id = "sessionId"   // This is the session ID from EventSetting
+        case start_time = "startTime"
+        case end_time = "endTime"
+        case play_time = "playTime"
+        case game_id = "eventId"     // This maps to event_id_id in the new structure
+    }
+    
     init() {
         start_time = ""
         end_time = ""
@@ -32,3 +58,4 @@ class GameData:Decodable{
         game_id = -1
     }
 }
+
