@@ -16,26 +16,94 @@ class GameViewModel: ObservableObject {
     @Published private var cancellable3: AnyCancellable?
     @Published private var startGameCancellable: AnyCancellable?
 
+    
+    struct GameResponse: Codable {
+        let results: GameResult
+    }
+
+    struct GameResult: Codable {
+        let message: String
+    }
+
     func startGame(session: SessionModel, userID: String) {
         let url = GameStartUrl
-        let parameters: [String:String] = [
-            "room_id": "\(session.id)",
-            "user_id": userID
+        let parameters: [String: String] = [
+            "sessionId": "\(session.id)",
+            "userId": userID
         ]
-        let publisher: DataResponsePublisher<String> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        
+        
+        let publisher: DataResponsePublisher<GameResponse> = NetworkConnector().getDataPublisherDecodable(
+            url: url,
+            para: parameters
+        )
+        
         self.startGameCancellable = publisher
-            .sink(receiveValue: { [weak self] (values) in
-                print(values.debugDescription)
-                // After starting the game, refresh game data to get new timer
-                // only when you press start game will you need to wait for getGameaData to finish and set gameid
-                // into seesion.gameID for subsequent function tto work, otherwise gameid will be initial value -1
-                self?.getGameData(session: session, completion: {
-                    self?.getChests(userID: userID, session: session)
-                    self?.updateScore(userID: userID, session: session)
-                })
+            .sink(receiveValue: { [weak self] response in
+                print(response.debugDescription)
+                
+                if let error = response.error {
+                    print("Error: \(error)")
+                    return
+                }
+                
+                if let message = response.value?.results.message {
+                    switch message {
+                    case "success start game":
+                        self?.getGameData(session: session) {
+                            self?.getChests(userID: userID, session: session)
+                            self?.updateScore(userID: userID, session: session)
+                        }
+                    case "already start":
+                        print("Game already started")
+                    case "autoStartGame or unauthorized":
+                        print("Unauthorized or auto-start game")
+                    default:
+                        print("Unknown response: \(message)")
+                    }
+                }
             })
     }
+
     
+
+    func endGame(session: SessionModel, userID: String) {
+        let url = endGameUrl
+        let parameters: [String: String] = [
+            "sessionId": "\(session.id)",
+            "userId": userID
+        ]
+        
+        let publisher: DataResponsePublisher<GameResponse> = NetworkConnector().getDataPublisherDecodable(
+            url: url,
+            para: parameters
+        )
+        
+        self.startGameCancellable = publisher
+            .sink(receiveValue: { [weak self] response in
+                print(response.debugDescription)
+                
+                if let error = response.error {
+                    print("Error: \(error)")
+                    return
+                }
+                
+                if let message = response.value?.results.message {
+                    switch message {
+                    case "success end game":
+                        self?.min = 0
+                        self?.sec = 0
+                        self?.updateScore(userID: userID, session: session)
+                    case "not authorized":
+                        print("User not authorized to end game")
+                    case "game is already ended":
+                        print("Game has already ended")
+                    default:
+                        print("Unknown response: \(message)")
+                    }
+                }
+            })
+    }
     func getSessions(userID: String, groupID: Int) {
         let url = getRoomList
         let parameters: [String:String] = [
@@ -158,21 +226,7 @@ class GameViewModel: ObservableObject {
     
 
     
-    func endGame(session: SessionModel, userID: String) {
-        let url = endGameUrl
-        let parameters: [String:String] = [
-            "room_id": "\(session.id)",
-            "user_id": userID
-        ]
-        let publisher: DataResponsePublisher<String> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
-        self.startGameCancellable = publisher
-            .sink(receiveValue: { [weak self] (values) in
-                print(values.debugDescription)
-                self?.min = 0
-                self?.sec = 0
-                self?.updateScore(userID: userID, session: session)
-            })
-    }
+    
     
     func getGameList(userID: String) {
         let url = privateGetGroupList

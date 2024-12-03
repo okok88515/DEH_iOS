@@ -41,7 +41,6 @@ let GamePrizeAttributeUrl      = "https://deh.csie.ncku.edu.tw:8080/api/v1/get_p
 let GameGroupListUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/get_group_list"
 let GameRoomListUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/get_room_list"
 let GameIDUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/get_game_id"
-let GameStartUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/start_game"
 let GameHistoryUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/get_game_history"
 let GameDataUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1//get_game_data"
 
@@ -56,7 +55,9 @@ let chestMinusUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/chestMinus"
 let getMemberPointUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/getMemberPoint"
 let getGameDataUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/getGameData"
 
-let endGameUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/endGame"
+let endGameUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/endGame"
+let GameStartUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/startGame"
+
 
 
 let uploadMediaAnswerUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/uploadMediaAnswer"
