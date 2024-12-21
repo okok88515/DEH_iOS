@@ -104,24 +104,35 @@ class GameViewModel: ObservableObject {
                 }
             })
     }
-    func getSessions(userID: String, groupID: Int) {
+    struct SessionResponse: Codable {
+        let results: [SessionModel]
+    }
+
+    func getSessions(userID: String, eventId: Int) {
         let url = getRoomList
-        let parameters: [String:String] = [
-            "user_id": userID,
-            "coi_name": coi,
-            "coi": coi,
-            "language": "中文",
-            "group_id": "\(groupID)",
+        let parameters: [String: Any] = [
+            "userId": userID,
+            "eventId": eventId
         ]
-        let publisher: DataResponsePublisher<[SessionModel]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        
+        let publisher: DataResponsePublisher<SessionResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        
         self.cancellable = publisher
-            .sink(receiveValue: {(values) in
-                if let value = values.value {
-                    self.sessionList = value
+            .sink(receiveValue: { [weak self] values in
+                // Print raw response for debugging
+                print("Raw Response:", String(data: values.data ?? Data(), encoding: .utf8) ?? "No data")
+                
+                if let response = values.value?.results {
+                    self?.sessionList = response
+                    print("Successfully decoded \(response.count) sessions")
+                } else {
+                    print("Failed to decode session results")
+                    if let error = values.error {
+                        print("Error:", error)
+                    }
                 }
             })
     }
-    
     func initial(session: SessionModel, userID: String) {
         getGameData(session: session) { [weak self] in
             self?.getChests(userID: userID, session: session)

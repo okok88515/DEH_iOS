@@ -58,7 +58,7 @@ struct SessionView: View {
         }
         
         .onAppear(){
-            gameVM.getSessions(userID: settingStorage.userID, groupID: group.id)
+            gameVM.getSessions(userID: settingStorage.userID, eventId: group.id)
         }
     }
 }
