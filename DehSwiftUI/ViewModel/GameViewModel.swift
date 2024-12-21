@@ -299,27 +299,60 @@ class GameViewModel: ObservableObject {
 
     
     
-    
+    struct GameListResponse: Codable {
+        let results: Results
+        
+        struct Results: Codable {
+            let eventList: [Group]?
+            let groupList: [Group]?
+            
+            enum CodingKeys: String, CodingKey {
+                case eventList = "eventList"  // These might need to be adjusted
+                case groupList = "groupList"
+            }
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case results
+        }
+    }
+
     func getGameList(userID: String) {
         let url = privateGetGroupList
         let parameters: [String:String] = [
-            "user_id": userID,
-            "coi_name": coi,
-            "language": "中文",
+            "userId": userID,
+            "coiName": coi,
         ]
+        
         var tempList: [gameListtuple] = []
-        let publisher: DataResponsePublisher<GroupLists> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<GameListResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        
         self.cancellable = publisher
-            .sink(receiveValue: {(values) in
-                if let eventList = values.value?.eventList {
-                    tempList.append(gameListtuple("public".localized, eventList))
-                }
-                if let groupList = values.value?.groupList {
-                    if(!groupList.isEmpty) {
-                        tempList.append(gameListtuple("private".localized, groupList))
+            .sink(receiveValue: { [weak self] values in
+                print("Raw Response:", String(data: values.data ?? Data(), encoding: .utf8) ?? "No data")  // Add this debug line
+                
+                if let results = values.value?.results {
+                    // Handle public events
+                    if let eventList = results.eventList {
+                        if (!eventList.isEmpty) {  // Only add if there are events
+                            tempList.append(gameListtuple("public".localized, eventList))
+                        }
+                    }
+                    
+                    // Handle private events
+                    if let groupList = results.groupList {
+                        if(!groupList.isEmpty) {
+                            tempList.append(gameListtuple("private".localized, groupList))
+                        }
+                    }
+                    
+                    self?.gameList = tempList
+                } else {
+                    print("Failed to decode results")
+                    if let error = values.error {
+                        print("Error:", error)
                     }
                 }
-                self.gameList = tempList
             })
     }
 }

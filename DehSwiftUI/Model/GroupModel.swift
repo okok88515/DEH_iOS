@@ -11,29 +11,36 @@ import SwiftUI
 import Alamofire
 
 
-
-class Group:Identifiable,Decodable,Hashable {
+class Group: Identifiable, Codable, Hashable {
+    var id: Int
+    var name: String
+    var leaderId: Int?
+    var info: String?
+    var startTime: String?  // Added
+    var endTime: String?    // Added
     
-    var id:Int
-    var name:String
-    var leaderId:Int?
-    var info:String?
-    
-    enum CodingKeys: String, CodingKey{
+    enum CodingKeys: String, CodingKey {
         case id
         case name
-        case leaderId = "learderId"
+        case leaderId = "leaderId"
         case info = "group_info"
+        case startTime = "startTime"  // Added
+        case endTime = "endTime"      // Added
     }
-    init(id:Int,name:String, leaderId:Int, info:String) {
+    
+    init(id: Int, name: String, leaderId: Int, info: String, startTime: String? = nil, endTime: String? = nil) {
         self.id = id
         self.name = name
         self.leaderId = leaderId
         self.info = info
+        self.startTime = startTime
+        self.endTime = endTime
     }
+    
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
+    
     static func == (lhs: Group, rhs: Group) -> Bool {
         return lhs.id == rhs.id
     }
