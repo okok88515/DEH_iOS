@@ -545,24 +545,71 @@ extension ChestDetailView {
                     self.showMessage = true
                 })
         }
-       
-       func chestMinus(answer: String, correctness: String) {
-           let url = chestMinusUrl
-           let parameters: [String:String] = [
-               "user_id": "\(settingStorage.userID)",
-               "game_id": "\(session.gameID)",
-               "chest_id": "\(chest.id)",
-               "user_answer": answer,
-               "lat": "\(locationManager.coordinateRegion.center.latitude)",
-               "lng": "\(locationManager.coordinateRegion.center.longitude)",
-           ]
-           
-           let publisher: DataResponsePublisher<String> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
-           self.minusCancellable = publisher
-               .sink(receiveValue: { values in
-                   print(values.debugDescription)
-               })
-       }
+    func chestMinus(answer: String, correctness: String) {
+        let url = chestMinusUrl
+        let parameters: [String: Any] = [
+            "userId": settingStorage.userID,
+            "gameId": session.gameID,
+            "chestId": chest.id,
+            "userAnswer": answer,
+            "latitude": locationManager.coordinateRegion.center.latitude,
+            "longitude": locationManager.coordinateRegion.center.longitude
+        ]
+        
+        print("=== ChestMinus API Call ===")
+        print("URL:", url)
+        print("Parameters:", parameters)
+        
+        // Update response type to match backend structure
+        struct ChestResponse: Decodable {
+            let results: MessageResponse
+            
+            struct MessageResponse: Decodable {
+                let message: String
+            }
+        }
+        
+        let publisher: DataResponsePublisher<ChestResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        self.minusCancellable = publisher
+            .sink(receiveValue: { values in
+                print("\n=== ChestMinus Response ===")
+                if let statusCode = values.response?.statusCode {
+                    print("HTTP Status Code:", statusCode)
+                }
+                
+                // Print raw response data
+                if let data = values.data, let rawString = String(data: data, encoding: .utf8) {
+                    print("Raw Response Data:", rawString)
+                }
+                
+                if let error = values.error {
+                    print("Error:", error)
+                    return
+                }
+                
+                if let message = values.value?.results.message {
+                    print("Server Response:", message)
+                    
+                    // Handle different response cases
+                    switch message {
+                    case "finish":
+                        print("Answer submitted successfully")
+                    case "chest is empty":
+                        print("Chest is already empty")
+                    case "already answer":
+                        print("Already answered this chest")
+                    case let msg where msg.contains("server sql error"):
+                        print("Server error occurred:", msg)
+                    default:
+                        print("Unexpected response:", message)
+                    }
+                }
+                
+                print("=== ChestMinus Completed ===\n")
+            })
+        
+        print("API request initiated")
+    }
    }
 
 

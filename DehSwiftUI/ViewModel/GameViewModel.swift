@@ -189,7 +189,7 @@ class GameViewModel: ObservableObject {
                 if let gameData = values.value?.results.first {
                     print("Game data decoded successfully")
                     print("Decoded data:", gameData)
-                    session.gameID = gameData.game_id  // Using eventId from backend
+                    session.gameID = gameData.id  // gameid can be passed to chestminus API parameters
                 } else {
                     print("No game data in response")
                     completion()
