@@ -25,7 +25,7 @@ class GameHistoryModel: Decodable, Hashable, Identifiable {
         self.state = state
         
         isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = isoFormatter.date(from: self.startTime) {
+        if let date = isoFormatter.date(from: self.startTime)?.addingTimeInterval(-8 * 3600) {
             let formatter = DateFormatter()
             formatter.dateFormat = "HH:mm E, d MMM y"
             self.name = formatter.string(from: date)
@@ -40,10 +40,10 @@ class GameHistoryModel: Decodable, Hashable, Identifiable {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             id = try container.decode(Int.self, forKey: .id)
             startTime = try container.decode(String.self, forKey: .startTime)
-            state = try container.decodeIfPresent(Int.self, forKey: .state) // Add this line
+            state = try container.decodeIfPresent(Int.self, forKey: .state)
             
             isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-            if let date = isoFormatter.date(from: startTime) {
+            if let date = isoFormatter.date(from: startTime)?.addingTimeInterval(-8 * 3600) {
                 let formatter = DateFormatter()
                 formatter.dateFormat = "HH:mm E, d MMM y"
                 name = formatter.string(from: date)
@@ -53,7 +53,7 @@ class GameHistoryModel: Decodable, Hashable, Identifiable {
             }
         }
         catch {
-            print("Decoding error: \(error)")  // Add error printing
+            print("Decoding error: \(error)")
             id = -1
             startTime = ""
             state = nil
@@ -63,7 +63,7 @@ class GameHistoryModel: Decodable, Hashable, Identifiable {
     
     enum CodingKeys: String, CodingKey {
         case id
-        case startTime = "startTime"  // Match exact API response field name
+        case startTime = "startTime"
         case state
         case name
     }
@@ -76,6 +76,7 @@ class GameHistoryModel: Decodable, Hashable, Identifiable {
         return lhs.id == rhs.id
     }
 }
+
 class gameListtuple : Identifiable, Hashable{
     var id = UUID()
     var sectionName:String = ""
