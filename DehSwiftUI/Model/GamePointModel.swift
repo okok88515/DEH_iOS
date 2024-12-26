@@ -1,5 +1,8 @@
 import Foundation
 import SwiftUI
+struct GamePointResponse: Decodable {
+    let results: [GamePointModel]
+}
 
 class GamePointModel: Decodable, Hashable, Identifiable {
     var correctness: Bool
@@ -18,22 +21,18 @@ class GamePointModel: Decodable, Hashable, Identifiable {
     
     enum CodingKeys: String, CodingKey {
         case correctness
-        case id = "user_id_id"
+        case id = "userId"  // Changed from user_id_id to userId to match new API
         case point
         case name = "nickname"
-        case answer_time
+        case answer_time = "answerTime"  // Changed to match new API
     }
     
-    // Original hash function only used id, which made different points with same user appear as duplicates
-    // Adding point and answer_time to ensure each game attempt is unique, even from same user
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-        hasher.combine(point)  // Add point to make each item unique
-        hasher.combine(answer_time)  // Add answer_time to make each item unique
+        hasher.combine(point)
+        hasher.combine(answer_time)
     }
     
-    // Original equality only compared IDs, causing SwiftUI to treat different attempts from same user as identical
-    // Updated to compare all relevant properties to properly distinguish between attempts
     static func == (lhs: GamePointModel, rhs: GamePointModel) -> Bool {
         return lhs.id == rhs.id &&
                lhs.point == rhs.point &&

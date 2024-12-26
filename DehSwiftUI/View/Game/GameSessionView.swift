@@ -46,7 +46,7 @@ struct SessionView: View {
                 .listRowBackground(Color.init(UIColor(rgba: lightGreen)))
             }
             NavigationLink(
-                destination: GameHistoryView(roomID:gameVM.selectedSession?.id ?? -1),
+                destination: GameHistoryView(session: gameVM.selectedSession ?? testSession),
                 tag:1, selection: $selection){
                     EmptyView()
                 }

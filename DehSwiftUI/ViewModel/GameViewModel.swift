@@ -114,6 +114,9 @@ class GameViewModel: ObservableObject {
             "userId": userID,
             "eventId": eventId
         ]
+        print("=== getSessions API Call ===")
+        print("URL:", url)
+        print("Parameters:", parameters)
         
         let publisher: DataResponsePublisher<SessionResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         
@@ -284,17 +287,21 @@ class GameViewModel: ObservableObject {
     }
     func updateScore(userID: String, session: SessionModel) {
         let url = getUserAnswerRecord
-        let parameters: [String:String] = [
-            "user_id": userID,
-            "room_id": "\(session.id)",
-            "game_id": "\(session.gameID)"
+        let parameters: [String: String] = [
+            "userId": userID,
+            "gameId": "\(session.gameID)"
         ]
         
-        let publisher: DataResponsePublisher<[ScoreRecord]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        
+        print("=== getUserAnswerRecord API Call ===")
+        print("URL:", url)
+        print("Parameters:", parameters)
+        
+        
+        let publisher: DataResponsePublisher<ScoreResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         self.cancellable2 = publisher
             .sink(receiveValue: { [weak self] (values) in
-                if let records = values.value {
-                    // Simply sum up the points from correct answers
+                if let records = values.value?.results {
                     let totalScore = records.reduce(0) { sum, record in
                         guard let isCorrect = record.correctness,
                               let point = record.point else {
@@ -302,7 +309,7 @@ class GameViewModel: ObservableObject {
                         }
                         return sum + (isCorrect ? point : 0)
                     }
-                    self?.score = totalScore  // Only keep current score
+                    self?.score = totalScore
                 }
             })
     }

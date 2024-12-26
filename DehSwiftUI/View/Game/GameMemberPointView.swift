@@ -40,20 +40,20 @@ extension GameMemberPoint {
     func getMemberPoint() {
         let url = getMemberPointUrl
         let parameters: [String: String] = [
-            "room_id": "\(roomID)",
-            "game_id": "\(gameID)",
-            "user_id": "\(settingStorage.userID)",
-            "rank": "1",
+            "gameId": "\(gameID)"  // Only gameId is needed now
         ]
-        print("Fetching with parameters: \(parameters)")
         
-        let publisher: DataResponsePublisher<[GamePointModel]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        print("=== getMemberPoint API Call ===")
+        print("URL:", url)
+        print("Parameters:", parameters)
+        
+        let publisher: DataResponsePublisher<GamePointResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         self.cancellable = publisher
             .sink(receiveValue: { values in
                 print("\n=== Network Response ===")
                 print(values.debugDescription)
                 
-                if let value = values.value {
+                if let value = values.value?.results {
                     print("\n=== Raw Data ===")
                     value.forEach { point in
                         print("""
@@ -71,17 +71,7 @@ extension GameMemberPoint {
                     
                     let sortedList = filteredList.sorted { $0.point > $1.point }
                     print("\n=== Final Sorted List (\(sortedList.count) items) ===")
-                    sortedList.forEach { point in
-                        print("""
-                            ID: \(point.id)
-                            Name: \(point.name)
-                            Point: \(point.point)
-                            Answer Time: \(point.answer_time)
-                            ----------------
-                            """)
-                    }
-                    // Added DispatchQueue.main.async to ensure UI updates happen on main thread
-
+                    
                     DispatchQueue.main.async {
                         self.gamePointList = sortedList
                     }

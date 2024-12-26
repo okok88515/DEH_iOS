@@ -5,61 +5,77 @@
 //  Created by 阮盟雄 on 2021/4/29.
 //  Copyright © 2021 mmlab. All rights reserved.
 //
-
 import Foundation
 import SwiftUI
 
-class GameHistoryModel:Decodable,Hashable,Identifiable{
-    var id:Int
-    var startTime:String
-    var name:String?
+struct GameHistoryResponse: Decodable {
+    let results: [GameHistoryModel]
+}
+
+class GameHistoryModel: Decodable, Hashable, Identifiable {
+    var id: Int
+    var startTime: String
+    var state: Int?
+    var name: String?
     let isoFormatter = ISO8601DateFormatter()
-    init(id:Int,startTime:String) {
+    
+    init(id: Int, startTime: String, state: Int? = nil) {
         self.id = id
         self.startTime = startTime
+        self.state = state
         
         isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = isoFormatter.date(from: self.startTime){
-            self.name = "\(date)"
+        if let date = isoFormatter.date(from: self.startTime) {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "HH:mm E, d MMM y"
+            self.name = formatter.string(from: date)
         }
-        else{
+        else {
             self.name = "no date"
         }
     }
-    required init(from decoder:Decoder){
-        do{
+    
+    required init(from decoder: Decoder) {
+        do {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             id = try container.decode(Int.self, forKey: .id)
             startTime = try container.decode(String.self, forKey: .startTime)
+            state = try container.decodeIfPresent(Int.self, forKey: .state) // Add this line
+            
             isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-            if let date = isoFormatter.date(from: startTime){
+            if let date = isoFormatter.date(from: startTime) {
                 let formatter = DateFormatter()
                 formatter.dateFormat = "HH:mm E, d MMM y"
-                name = formatter.string(from:date)
+                name = formatter.string(from: date)
             }
-            else{
+            else {
                 name = "no date"
             }
         }
-        catch{
+        catch {
+            print("Decoding error: \(error)")  // Add error printing
             id = -1
             startTime = ""
+            state = nil
             name = "decode error"
         }
     }
-    enum CodingKeys: String, CodingKey{
+    
+    enum CodingKeys: String, CodingKey {
         case id
-        case startTime = "start_time"
+        case startTime = "startTime"  // Match exact API response field name
+        case state
         case name
     }
+    
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
+    
     static func == (lhs: GameHistoryModel, rhs: GameHistoryModel) -> Bool {
         return lhs.id == rhs.id
     }
 }
-
 class gameListtuple : Identifiable, Hashable{
     var id = UUID()
     var sectionName:String = ""
@@ -76,10 +92,14 @@ class gameListtuple : Identifiable, Hashable{
     }
 }
 
+struct ScoreResponse: Decodable {
+    let results: [ScoreRecord]
+}
+
 class ScoreRecord: Decodable {
     var answer: String?
     var chest_id: Int?
-    var correctness: Bool?     // Changed from Int? to Bool? because server response is True/False
+    var correctness: Bool?
     var option1: String?
     var option2: String?
     var option3: String?
@@ -87,10 +107,13 @@ class ScoreRecord: Decodable {
     var point: Int?
     var question: String?
     var question_type: Int?
+    var recordId: Int?
+    var questionATT: [MediaAttachment]?
+    var recordATT: [MediaAttachment]?
     
     enum CodingKeys: String, CodingKey {
         case answer
-        case chest_id = "chest_id_id"
+        case chest_id = "chestId"  // Map to new API's chestId
         case correctness
         case option1
         case option2
@@ -98,7 +121,14 @@ class ScoreRecord: Decodable {
         case option4
         case point
         case question
-        case question_type
+        case question_type = "questionType"  // Map to new API's questionType
+        case recordId
+        case questionATT
+        case recordATT
     }
 }
 
+struct MediaAttachment: Decodable {
+    var mediaUrl: String?
+    var mediaFormat: Int?
+}

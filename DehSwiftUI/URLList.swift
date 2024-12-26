@@ -44,15 +44,15 @@ let GameIDUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/get_game_id"
 let GameHistoryUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/get_game_history"
 let GameDataUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1//get_game_data"
 
-let getUserAnswerRecord = "https://deh.csie.ncku.edu.tw:8080/api/v1/getUserAnswerRecord"
+//let getUserAnswerRecord = "https://deh.csie.ncku.edu.tw:8080/api/v1/getUserAnswerRecord"
 //let privateGetGroupList = "https://deh.csie.ncku.edu.tw:8080/api/v1/getGroupList"
 //let getRoomList = "https://deh.csie.ncku.edu.tw:8080/api/v1/getRoomList"
-let getGameHistory = "https://deh.csie.ncku.edu.tw:8080/api/v1/getGameHistory"
+//let getGameHistory = "https://deh.csie.ncku.edu.tw:8080/api/v1/getGameHistory"
 let getChestList = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/chestList"
 let getChestMediaUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/getChestMedia"
 let insertAnswerUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/insertAnswer"
 //let chestMinusUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/chestMinus"
-let getMemberPointUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/getMemberPoint"
+//let getMemberPointUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/getMemberPoint"
 let getGameDataUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1//events/gameData"
 
 let privateGetGroupList = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/listEvents"
@@ -61,7 +61,9 @@ let chestMinusUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/answerChest
 
 let endGameUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/endGame"
 let GameStartUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/startGame"
-
+let getGameHistory = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/gameHistory"
+let getUserAnswerRecord = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/answerRecord"
+let getMemberPointUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/getMemberPoint"
 
 
 let uploadMediaAnswerUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/uploadMediaAnswer"
