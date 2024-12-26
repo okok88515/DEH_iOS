@@ -15,7 +15,7 @@ struct GameMemberPoint: View {
             HStack {
                 Image(systemName: "star.fill")
                     .foregroundColor(.yellow)
-                Text("總分：\(totalScore)")
+                Text("總分：\(getTotalScore())")
                     .font(.title3)
                     .bold()
                     .foregroundColor(.white)
@@ -25,10 +25,9 @@ struct GameMemberPoint: View {
             .background(Color.init(UIColor(rgba: lightGreen)))
             
             List {
-                ForEach(gamePointList.indices, id: \ .self) { index in
+                ForEach(gamePointList.indices, id: \.self) { index in
                     let gamePoint = gamePointList[index]
                     VStack(alignment: .leading, spacing: 12) {
-                        // 題目區塊
                         VStack(alignment: .leading, spacing: 6) {
                             Text("題目")
                                 .font(.headline)
@@ -36,11 +35,10 @@ struct GameMemberPoint: View {
                             Text(gamePoint.question ?? "無")
                                 .font(.body)
                                 .foregroundColor(.white)
-                                .padding(.leading, 10) // 增加縮排
+                                .padding(.leading, 10)
                         }
-                        .padding(.bottom, 8) // 增加區塊間距
+                        .padding(.bottom, 8)
                         
-                        // 答案與得分區塊
                         HStack(alignment: .top, spacing: 16) {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("你的答案")
@@ -58,25 +56,23 @@ struct GameMemberPoint: View {
                                 Text("得分")
                                     .font(.headline)
                                     .foregroundColor(.white.opacity(0.7))
-                                Text("\(gamePoint.point ?? 0)")
+                                Text("\(getPointScore(gamePoint))")
                                     .font(.title3)
                                     .bold()
                                     .foregroundColor(.white)
                             }
                         }
-                        .padding(.bottom, 8) // 增加區塊間距
+                        .padding(.bottom, 8)
                         
-                        // 正確性區塊
                         HStack {
                             Text("正確性：")
                                 .font(.headline)
                                 .foregroundColor(.white.opacity(0.7))
                             Text(gamePoint.correctness ? "正確" : "錯誤")
-                                .foregroundColor(gamePoint.correctness ? Color.yellow.opacity(0.85) : .red) // 深黃色與紅色
+                                .foregroundColor(gamePoint.correctness ? Color.yellow.opacity(0.85) : .red)
                                 .bold()
                         }
                         
-                        // 附件區塊
                         if let att = gamePoint.questionATT?.first {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("附件")
@@ -90,10 +86,10 @@ struct GameMemberPoint: View {
                             }
                         }
                     }
-                    .padding(.vertical, 12) // 增加每個區塊的間距
-                    .background(Color.init(UIColor(rgba: lightGreen)).opacity(0.9)) // 背景略微加深
-                    .cornerRadius(8) // 增加圓角
-                    .listRowBackground(Color.clear) // 確保背景透明，使用自定義背景
+                    .padding(.vertical, 12)
+                    .background(Color.init(UIColor(rgba: lightGreen)).opacity(0.9))
+                    .cornerRadius(8)
+                    .listRowBackground(Color.clear)
                 }
                 .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
             }
@@ -101,6 +97,16 @@ struct GameMemberPoint: View {
         }
         .onAppear {
             getMemberPoint()
+        }
+    }
+    
+    func getPointScore(_ gamePoint: GamePointModel) -> Int {
+        return gamePoint.correctness ? (gamePoint.point ?? 0) : 0
+    }
+    
+    func getTotalScore() -> Int {
+        return gamePointList.reduce(0) { total, point in
+            total + (point.correctness ? (point.point ?? 0) : 0)
         }
     }
 }
