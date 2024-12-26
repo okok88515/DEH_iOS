@@ -63,8 +63,10 @@ let endGameUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/endGame"
 let GameStartUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/startGame"
 let getGameHistory = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/gameHistory"
 let getUserAnswerRecord = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/answerRecord"
-let getMemberPointUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/getMemberPoint"
+//let getMemberPointUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/getMemberPoint"
 
+
+let getUserPoint = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/userPoint"
 
 let uploadMediaAnswerUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/uploadMediaAnswer"
 let FieldGetAllListUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/listRegion"

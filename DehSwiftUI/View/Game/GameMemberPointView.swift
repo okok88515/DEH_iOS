@@ -8,72 +8,120 @@ struct GameMemberPoint: View {
     @State var roomID: Int = -1
     @State var gameID: Int = -1
     @State var gamePointList: [GamePointModel] = []
+    @State var totalScore: Int = 0
     
     var body: some View {
-        List {
-            // Original: ForEach(gamePointList) caused identity issues due to insufficient Hashable implementation
-            // Changed to use indices to force unique identification of each row
-            ForEach(gamePointList.indices, id: \.self) { index in
-                let gamePoint = gamePointList[index]
-                HStack {
-                    Text(gamePoint.name)
-                        .foregroundColor(Color.white)
-                        .allowsTightening(true)
-                        .lineLimit(1)
-                        .background(Color.init(UIColor(rgba: lightGreen)))
-                    Spacer()
-                    // Now each point value is correctly displayed because each row has a unique identity
-
-                    Text("Point: \(gamePoint.point)")
-                        .foregroundColor(Color.white)
-                }
-                .listRowBackground(Color.init(UIColor(rgba: lightGreen)))
+        VStack(spacing: 0) {
+            HStack {
+                Image(systemName: "star.fill")
+                    .foregroundColor(.yellow)
+                Text("總分：\(totalScore)")
+                    .font(.title3)
+                    .bold()
+                    .foregroundColor(.white)
             }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.init(UIColor(rgba: lightGreen)))
+            
+            List {
+                ForEach(gamePointList.indices, id: \ .self) { index in
+                    let gamePoint = gamePointList[index]
+                    VStack(alignment: .leading, spacing: 12) {
+                        // 題目區塊
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("題目")
+                                .font(.headline)
+                                .foregroundColor(.white.opacity(0.7))
+                            Text(gamePoint.question ?? "無")
+                                .font(.body)
+                                .foregroundColor(.white)
+                                .padding(.leading, 10) // 增加縮排
+                        }
+                        .padding(.bottom, 8) // 增加區塊間距
+                        
+                        // 答案與得分區塊
+                        HStack(alignment: .top, spacing: 16) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("你的答案")
+                                    .font(.headline)
+                                    .foregroundColor(.white.opacity(0.7))
+                                Text(gamePoint.answer ?? "無")
+                                    .font(.body)
+                                    .foregroundColor(.white)
+                                    .padding(.leading, 10)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack(alignment: .trailing, spacing: 6) {
+                                Text("得分")
+                                    .font(.headline)
+                                    .foregroundColor(.white.opacity(0.7))
+                                Text("\(gamePoint.point ?? 0)")
+                                    .font(.title3)
+                                    .bold()
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        .padding(.bottom, 8) // 增加區塊間距
+                        
+                        // 正確性區塊
+                        HStack {
+                            Text("正確性：")
+                                .font(.headline)
+                                .foregroundColor(.white.opacity(0.7))
+                            Text(gamePoint.correctness ? "正確" : "錯誤")
+                                .foregroundColor(gamePoint.correctness ? Color.yellow.opacity(0.85) : .red) // 深黃色與紅色
+                                .bold()
+                        }
+                        
+                        // 附件區塊
+                        if let att = gamePoint.questionATT?.first {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("附件")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.7))
+                                Text(att.mediaUrl ?? "")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.8))
+                                    .lineLimit(1)
+                                    .padding(.leading, 10)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 12) // 增加每個區塊的間距
+                    .background(Color.init(UIColor(rgba: lightGreen)).opacity(0.9)) // 背景略微加深
+                    .cornerRadius(8) // 增加圓角
+                    .listRowBackground(Color.clear) // 確保背景透明，使用自定義背景
+                }
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+            }
+            .listStyle(PlainListStyle())
         }
         .onAppear {
             getMemberPoint()
         }
     }
 }
-
+//這應該叫分數紀錄
 extension GameMemberPoint {
     func getMemberPoint() {
-        let url = getMemberPointUrl
+        let url = getUserAnswerRecord
         let parameters: [String: String] = [
-            "gameId": "\(gameID)"  // Only gameId is needed now
+            "userId": "\(settingStorage.userID)",
+            "gameId": "\(gameID)"
         ]
-        
-        print("=== getMemberPoint API Call ===")
-        print("URL:", url)
-        print("Parameters:", parameters)
         
         let publisher: DataResponsePublisher<GamePointResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         self.cancellable = publisher
             .sink(receiveValue: { values in
-                print("\n=== Network Response ===")
-                print(values.debugDescription)
-                
-                if let value = values.value?.results {
-                    print("\n=== Raw Data ===")
-                    value.forEach { point in
-                        print("""
-                            ID: \(point.id)
-                            Name: \(point.name)
-                            Point: \(point.point)
-                            Answer Time: \(point.answer_time)
-                            Correctness: \(point.correctness)
-                            ----------------
-                            """)
-                    }
-                    
-                    let filteredList = value.filter { $0.correctness }
-                    print("\n=== After Filtering (\(filteredList.count) items) ===")
-                    
-                    let sortedList = filteredList.sorted { $0.point > $1.point }
-                    print("\n=== Final Sorted List (\(sortedList.count) items) ===")
+                if let records = values.value?.results {
+                    let total = records.reduce(0) { $0 + ($1.point ?? 0) }
                     
                     DispatchQueue.main.async {
-                        self.gamePointList = sortedList
+                        self.gamePointList = records
+                        self.totalScore = total
                     }
                 }
             })

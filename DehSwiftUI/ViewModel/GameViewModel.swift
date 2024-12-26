@@ -285,37 +285,42 @@ class GameViewModel: ObservableObject {
         
         print("API request initiated")
     }
+    
+    struct UserPointResponse: Decodable {
+        let results: UserPoint
+    }
+
+    struct UserPoint: Decodable {
+        let totalPoint: Int
+        let userId: Int
+        let correctAnswers: Int
+    }
+
     func updateScore(userID: String, session: SessionModel) {
-        let url = getUserAnswerRecord
+        let url = getUserPoint
         let parameters: [String: String] = [
             "userId": userID,
             "gameId": "\(session.gameID)"
         ]
         
-        
-        print("=== getUserAnswerRecord API Call ===")
-        print("URL:", url)
+        print("\n=== UpdateScore API Call ===")
         print("Parameters:", parameters)
         
-        
-        let publisher: DataResponsePublisher<ScoreResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<UserPointResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
         self.cancellable2 = publisher
-            .sink(receiveValue: { [weak self] (values) in
-                if let records = values.value?.results {
-                    let totalScore = records.reduce(0) { sum, record in
-                        guard let isCorrect = record.correctness,
-                              let point = record.point else {
-                            return sum
-                        }
-                        return sum + (isCorrect ? point : 0)
-                    }
-                    self?.score = totalScore
+            .sink(receiveValue: { [weak self] values in
+                print("\n=== UpdateScore Response ===")
+                print("Raw Response:", String(data: values.data ?? Data(), encoding: .utf8) ?? "No data")
+                
+                if let userPoint = values.value?.results {
+                    print("Score updated to:", userPoint.totalPoint)
+                    self?.score = userPoint.totalPoint
+                } else {
+                    print("No score data, setting to 0")
+                    self?.score = 0
                 }
             })
     }
-    
-
-    
     
     struct GameListResponse: Codable {
         let results: Results
