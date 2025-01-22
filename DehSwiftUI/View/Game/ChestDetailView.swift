@@ -381,7 +381,7 @@ extension ChestDetailView {
         let parameters: [String:String] = [
             "chest_id": "\(chest.id)",
         ]
-        let publisher: DataResponsePublisher<[ChestMedia]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<[ChestMedia]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.chestCancellable = publisher
             .sink(receiveValue: {(values) in
                 if let value = values.value {
@@ -533,7 +533,7 @@ extension ChestDetailView {
                 "lng": String(describing: locationManager.coordinateRegion.center.longitude),
             ]
             
-            let publisher: DataResponsePublisher<String> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+            let publisher: DataResponsePublisher<String> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
             self.chestCancellable = publisher
                 .sink(receiveValue: { values in
                     if answer == self.chest.answer {
@@ -569,7 +569,7 @@ extension ChestDetailView {
             }
         }
         
-        let publisher: DataResponsePublisher<ChestResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<ChestResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.minusCancellable = publisher
             .sink(receiveValue: { values in
                 print("\n=== ChestMinus Response ===")

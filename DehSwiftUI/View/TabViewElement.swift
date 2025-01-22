@@ -280,7 +280,8 @@ extension TabViewElement{
         let url = getXois[action] ?? ""
         let publisher: DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(
             url: url,
-            para: parameters
+            para: parameters,
+            addLogs: true
         )
         
         self.cancellable = publisher

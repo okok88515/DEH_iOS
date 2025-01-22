@@ -63,7 +63,7 @@ extension RegionView {
         let url = FieldGetAllListUrl
         print(settingStorage.account)
         let parameters = ["coi_name":coi, "language":"中文"]
-        let publisher:DataResponsePublisher<FieldList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<FieldList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: {(values) in
                 print(values.debugDescription)

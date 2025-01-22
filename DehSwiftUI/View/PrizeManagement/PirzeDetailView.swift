@@ -53,7 +53,7 @@ extension PrizeDetailView {
     func getPrizeAttribute() {
         let url = GamePrizeAttributeUrl
         let parameters = ["player_prize_id": prize.id ?? -1]
-        let publisher: DataResponsePublisher<[Prize]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<[Prize]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         cancellable = publisher.sink(receiveValue: { (values) in
             print(values.debugDescription)
             if let prizeAttribute = values.value {

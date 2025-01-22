@@ -61,7 +61,7 @@ extension GroupSearchView {
         print(settingStorage.account)
         let parameters = ["username":settingStorage.account,
                           "coi_name":coi]
-        let publisher:DataResponsePublisher<GroupNameList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<GroupNameList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: {(values) in
                 print(values.debugDescription)
@@ -78,7 +78,7 @@ extension GroupSearchView {
         }
 """
         let parameters = ["join_info":temp]
-        let publisher:DataResponsePublisher<GroupMessage> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<GroupMessage> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: {(values) in
                 print(values.debugDescription)

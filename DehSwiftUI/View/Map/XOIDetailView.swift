@@ -181,7 +181,7 @@ extension XOIDetail{
             "poi_id": xoi.id
         ]
         let url = POIClickCountUrl
-        let publisher:DataResponsePublisher<ClickCount> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<ClickCount> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher.sink(receiveValue: {(values) in
                 if let _ = values.value?.count{
                     viewNumbers = values.value?.count ?? -1

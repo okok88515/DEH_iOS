@@ -208,7 +208,7 @@ extension NearbyView{
             "language":"中文"
         ]
         let url = getNearbyXois[action] ?? ""
-        let publisher:DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: {(values) in
                 self.settingStorage.XOIs["nearby"] = values.value?.results

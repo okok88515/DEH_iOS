@@ -107,7 +107,7 @@ extension GroupListView{
             "coi_name": coi,
             "language": language,
         ]
-        let publisher:DataResponsePublisher<GroupLists> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<GroupLists> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.groupListCancellable = publisher
             .sink(receiveValue: {(values) in
                 groupsModel.groups = values.value?.results ?? []
@@ -122,7 +122,7 @@ extension GroupListView{
         }
         """
         let parameters = ["notification":temp]
-        let publisher:DataResponsePublisher<GroupMessage> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<GroupMessage> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.messageCancellable = publisher
             .sink(receiveValue: { (values) in
                 //                print(values.debugD                                                                        escription)

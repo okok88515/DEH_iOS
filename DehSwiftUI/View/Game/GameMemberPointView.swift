@@ -119,7 +119,7 @@ extension GameMemberPoint {
             "gameId": "\(gameID)"
         ]
         
-        let publisher: DataResponsePublisher<GamePointResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<GamePointResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: { values in
                 if let records = values.value?.results {

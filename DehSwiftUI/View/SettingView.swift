@@ -159,7 +159,7 @@ struct Setting: View {
             "coi_name" : coi,
         ]
         let url = UserLoginUrl
-        let publisher:DataResponsePublisher<LoginModel> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<LoginModel> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: {(values) in
                 self.loginTriggerAlert = true

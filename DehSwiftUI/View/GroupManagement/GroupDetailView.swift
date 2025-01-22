@@ -174,7 +174,7 @@ extension GroupDetailView {
         let parameters =
         ["group_id":"\(group.id)",
          "coi_name":coi]
-        let publisher:DataResponsePublisher<GroupMemberList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<GroupMemberList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: {(values) in
 //                print(values.debugDescription)
@@ -197,7 +197,7 @@ extension GroupDetailView {
 """
         print(temp)
         let parameters:[String:String] = ["group_information":temp]
-        let publisher:DataResponsePublisher<GroupMessage> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<GroupMessage> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: { (values) in
                 print(values.debugDescription)
@@ -217,7 +217,7 @@ extension GroupDetailView {
         }
         """
         let parameters = ["group_message_info":temp]
-        let publisher:DataResponsePublisher<GroupMessage> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<GroupMessage> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: { (values) in
                 print(values.debugDescription)
@@ -235,7 +235,7 @@ extension GroupDetailView {
    
         
         let parameters = ["group_update_info":temp]
-        let publisher:DataResponsePublisher<GroupMessage> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<GroupMessage> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: { (values) in
 //                print(values.debugDescription)
@@ -249,7 +249,7 @@ extension GroupDetailView {
             "page":"/API/test/manage_group/\(group.id)"
         ]
         let url = addGroupCountUrl
-        let publisher:DataResponsePublisher<Result> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<Result> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: {(values) in
                     print(values.value?.result ?? "")

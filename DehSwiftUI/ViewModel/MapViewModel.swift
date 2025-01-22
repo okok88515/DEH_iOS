@@ -62,7 +62,7 @@ class MapViewModel:ObservableObject {
             "language":"中文"
         ]
         let url = getNearbyXois[action] ?? ""
-        let publisher:DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters,addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: {(values) in
                 self.settingStorage.XOIs["nearby"] = values.value?.results
@@ -103,7 +103,7 @@ class MapViewModel:ObservableObject {
         ]
         print(formatsIndex)
         let url = getNearbyXois["searchNearbyPOI"] ?? ""
-        let publisher:DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters,addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: {(values) in
                 self.settingStorage.XOIs["nearby"] = values.value?.results
@@ -151,7 +151,7 @@ class MapViewModel:ObservableObject {
             "poi_id": xoi.id
         ]
         let url = POIClickCountUrl
-        let publisher:DataResponsePublisher<ClickCount> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<ClickCount> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher.sink(receiveValue: {(values) in
                 if let _ = values.value?.count{
                     self.viewNumbers = values.value?.count ?? -1

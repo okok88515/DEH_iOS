@@ -73,7 +73,7 @@ extension NickNameDialog {
     func createTempAccount(name:String) {
         let url = CreateTempAccountUrl
         let parameters = ["user_name":name]
-        let publisher:DataResponsePublisher<NickAccount> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher:DataResponsePublisher<NickAccount> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher.sink(receiveValue: { values in
             settingStorage.account = values.value?.account ?? ""
             settingStorage.password = values.value?.password ?? ""

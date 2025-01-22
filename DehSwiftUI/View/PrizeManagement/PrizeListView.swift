@@ -57,7 +57,7 @@ extension PrizeListView {
     func getPrizeList() {
         let url = PrizeGetListUrl
         let parameters = ["user_id":settingStorage.userID]
-        let publisher: DataResponsePublisher<[Prize]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<[Prize]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         cancellable = publisher.sink(receiveValue: { (values) in
             print(values.debugDescription)
             self.prizeList = values.value ?? []

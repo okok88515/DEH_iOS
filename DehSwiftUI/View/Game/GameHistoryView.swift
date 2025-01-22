@@ -46,7 +46,7 @@ extension GameHistoryView {
         print("URL:", url)
         print("Parameters:", parameters)
         
-        let publisher: DataResponsePublisher<GameHistoryResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<GameHistoryResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters,addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: { (values) in
                 print(values.debugDescription)

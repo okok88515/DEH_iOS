@@ -35,7 +35,8 @@ class GameViewModel: ObservableObject {
         
         let publisher: DataResponsePublisher<GameResponse> = NetworkConnector().getDataPublisherDecodable(
             url: url,
-            para: parameters
+            para: parameters,
+            addLogs: true
         )
         
         self.startGameCancellable = publisher
@@ -76,7 +77,8 @@ class GameViewModel: ObservableObject {
         
         let publisher: DataResponsePublisher<GameResponse> = NetworkConnector().getDataPublisherDecodable(
             url: url,
-            para: parameters
+            para: parameters,
+            addLogs: true
         )
         
         self.startGameCancellable = publisher
@@ -118,7 +120,7 @@ class GameViewModel: ObservableObject {
         print("URL:", url)
         print("Parameters:", parameters)
         
-        let publisher: DataResponsePublisher<SessionResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<SessionResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters,addLogs: true)
         
         self.cancellable = publisher
             .sink(receiveValue: { [weak self] values in
@@ -155,7 +157,7 @@ class GameViewModel: ObservableObject {
         print("URL:", url)
         print("Parameters:", parameters)
         
-        let publisher: DataResponsePublisher<GameDataResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<GameDataResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters,addLogs: true)
         self.cancellable3 = publisher
             .sink(receiveValue: { [weak self] (values) in
                 print("\n=== GetGameData Response ===")
@@ -240,7 +242,7 @@ class GameViewModel: ObservableObject {
         print("URL:", url)
         print("Parameters:", parameters)
         
-        let publisher: DataResponsePublisher<ChestResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<ChestResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters,addLogs: true)
         self.cancellable = publisher
             .sink(receiveValue: { [weak self] (values) in
                 print("\n=== GetChests Response ===")
@@ -306,7 +308,7 @@ class GameViewModel: ObservableObject {
         print("\n=== UpdateScore API Call ===")
         print("Parameters:", parameters)
         
-        let publisher: DataResponsePublisher<UserPointResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<UserPointResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters,addLogs: true)
         self.cancellable2 = publisher
             .sink(receiveValue: { [weak self] values in
                 print("\n=== UpdateScore Response ===")
@@ -348,7 +350,7 @@ class GameViewModel: ObservableObject {
         ]
         
         var tempList: [gameListtuple] = []
-        let publisher: DataResponsePublisher<GameListResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters)
+        let publisher: DataResponsePublisher<GameListResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters,addLogs: true)
         
         self.cancellable = publisher
             .sink(receiveValue: { [weak self] values in

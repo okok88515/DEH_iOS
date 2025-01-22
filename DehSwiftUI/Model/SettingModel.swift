@@ -10,6 +10,7 @@ import SwiftUI
 //import Combine
 
 final class SettingStorage:ObservableObject{
+    static let shared = SettingStorage()
     //    let objectWillChange = PassthroughSubject<Void, Never>()
     init(){
         
