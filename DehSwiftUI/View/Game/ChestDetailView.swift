@@ -137,20 +137,12 @@ struct ChestDetailView: View {
                 .edgesIgnoringSafeArea(.all)
 
             GeometryReader { geometry in
-                VStack(spacing: 20) {
-                    PagingView(index: $index.animation(), maxIndex: medias.count - 1) {
-                        ForEach(self.medias, id: \.data) { singleMedia in
-                            singleMedia.view()
-                        }
-                    }
-                    .frame(height: geometry.size.height * 0.4)
-
-                    ScrollView {
+                ScrollView {
+                    VStack(spacing: 5) {
+                        // Header - Moved to absolute top
                         HStack {
-                            Spacer()
                             Text("Question:")
                                 .multilineTextAlignment(.center)
-                                .frame(height: geometry.size.height * 0.03)
                                 .font(.system(size: 20, weight: .bold))
                             Spacer()
                             Button(action: {
@@ -160,29 +152,52 @@ struct ChestDetailView: View {
                                     .font(.headline)
                             }
                         }
+                        .padding(.horizontal)
+                        .padding(.top, 5)
+                        
                         Divider()
-                        Text(chest.question)
-                            .font(.body)
-                            .multilineTextAlignment(.center)
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
-                            .frame(maxWidth: .infinity, maxHeight: geometry.size.height * 0.15)
+                            .padding(.horizontal)
 
-                        answerBoxSelector(chest.questionType, geometry)
-                            .alert(isPresented: $showMessage) {
-                                Alert(
-                                    title: Text(responseMessage),
-                                    dismissButton: .default(Text("Ok"), action: {
-                                        self.presentationMode.wrappedValue.dismiss()
-                                    })
-                                )
+                        // Problem Box - Increased size by 20%
+                        ScrollView {
+                            Text(chest.question)
+                                .font(.body)
+                                .multilineTextAlignment(.center)
+                                .padding()
+                                .background(Color.white)
+                                .cornerRadius(12)
+                                .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: geometry.size.height * 0.3) // Increased by 20%
+                        .padding(.horizontal)
+
+                        // Media viewer section - if needed
+                        if !medias.isEmpty {
+                            PagingView(index: $index.animation(), maxIndex: medias.count - 1) {
+                                ForEach(self.medias, id: \.data) { singleMedia in
+                                    singleMedia.view()
+                                }
                             }
-                        Spacer()
+                            .frame(height: geometry.size.height * 0.25)
+                        }
+
+                        // Answer Box - Moved up with ScrollView for long content
+                        ScrollView {
+                            answerBoxSelector(chest.questionType, geometry)
+                                .padding(.horizontal)
+                                .alert(isPresented: $showMessage) {
+                                    Alert(
+                                        title: Text(responseMessage),
+                                        dismissButton: .default(Text("Ok"), action: {
+                                            self.presentationMode.wrappedValue.dismiss()
+                                        })
+                                    )
+                                }
+                        }
+                        .frame(minHeight: geometry.size.height * 0.4) // Ensure enough space for answers
                     }
                 }
-                .padding()
                 .onAppear {
                     getChestMedia()
                 }
@@ -193,7 +208,6 @@ struct ChestDetailView: View {
                     AudioRecordView(audioURL: $audioURL, recorder: $recoder)
                 }
             }
-            EmptyView()
         }
         .onTapGesture {
             self.hideKeyboard()
@@ -203,42 +217,85 @@ struct ChestDetailView: View {
 
 // MARK: - View Extensions
 extension ChestDetailView {
-    @ViewBuilder func answerBoxSelector(_ questionType: Int, _ geometry: GeometryProxy? = nil) -> some View {
+    @ViewBuilder func buttonViewer(answer: String, option: String) -> some View {
+        Button(action: { checkAnswer(answer) }) {
+            Text(option)
+                .fontWeight(.bold)
+                .font(.title3)
+                .padding(12)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
+                .background(Color.white)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.init(UIColor(rgba: lightGreen)), lineWidth: 5)
+                )
+                .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
+        }
+        .padding(.vertical, 3)
+    }
+    @ViewBuilder func answerBoxSelector(_ questionType: Int, _ geometry: GeometryProxy) -> some View {
         switch questionType {
         case 1: // True/False
-            HStack {
-                Button(action: { checkAnswer("T") }) {
-                    Image(systemName: "checkmark.circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 60, height: 60)
-                        .foregroundColor(.green)
+            VStack {
+                Spacer()
+                    .frame(height: geometry.size.height * 0.3) // Push content down more
+                
+                VStack(spacing: 15) {
+                    Text("選擇你的答案:")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    
+                    HStack(spacing: 40) {
+                        VStack(spacing: 5) {
+                            Button(action: { checkAnswer("T") }) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 50, height: 50)
+                                    .foregroundColor(.green)
+                            }
+                            Text("True")
+                                .font(.callout)
+                                .foregroundColor(.green)
+                        }
+                        
+                        VStack(spacing: 5) {
+                            Button(action: { checkAnswer("F") }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 50, height: 50)
+                                    .foregroundColor(.red)
+                            }
+                            Text("False")
+                                .font(.callout)
+                                .foregroundColor(.red)
+                        }
+                    }
+                    .padding(.vertical, 20)
+                    .padding(.horizontal)
+                    .background(Color.white.opacity(0.8))
+                    .cornerRadius(15)
                 }
-                Button(action: { checkAnswer("F") }) {
-                    Image(systemName: "xmark.circle")
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 60, height: 60)
-                        .foregroundColor(.red)
-                }
+                
+                Spacer() // Keep some space at bottom
             }
-            .padding()
         
         case 2: // Multiple Choice
-            VStack {
-                HStack {
+            VStack(spacing: 8) {
+                HStack(spacing: 8) {
                     buttonViewer(answer: "A", option: chest.option1 ?? "")
                     buttonViewer(answer: "B", option: chest.option2 ?? "")
                 }
-                HStack {
+                HStack(spacing: 8) {
                     buttonViewer(answer: "C", option: chest.option3 ?? "")
                     buttonViewer(answer: "D", option: chest.option4 ?? "")
                 }
             }
-            .padding()
-            .background(Color.white)
-            .cornerRadius(12)
-            .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
+            .padding(.vertical, 8)
+        
         
         case 3: // Essay/Media Question
             VStack {
@@ -263,7 +320,6 @@ extension ChestDetailView {
                     .padding()
                     .background(Color.blue.opacity(0.2))
                     .cornerRadius(12)
-                    .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
                 }
                 .padding(.horizontal)
 
@@ -277,7 +333,7 @@ extension ChestDetailView {
                         }
                         TextEditor(text: $textInEditor)
                             .padding(8)
-                            .frame(height: (geometry?.size.height ?? 0) * 0.2)
+                            .frame(height: geometry.size.height * 0.2)
                             .background(Color.white)
                             .cornerRadius(12)
                             .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 3)
@@ -343,37 +399,22 @@ extension ChestDetailView {
                 }) {
                     Text("Submit Answer")
                         .font(.headline)
-                        .frame(width: UIScreen.main.bounds.width - 40, height: 50)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
                         .background(Color.yellow)
                         .foregroundColor(.white)
                         .cornerRadius(12)
                         .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
                 }
+                .padding(.horizontal)
                 .padding(.top)
             }
+            
         default:
             EmptyView()
         }
     }
-    
-    @ViewBuilder func buttonViewer(answer: String, option: String) -> some View {
-        Button(action: { checkAnswer(answer) }) {
-            Text(option)
-                .fontWeight(.bold)
-                .font(.title)
-                .frame(minWidth: 100, minHeight: 100)
-                .background(Color.white)
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.init(UIColor(rgba: lightGreen)), lineWidth: 5)
-                )
-                .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 3)
-                .padding()
-        }
-    }
 }
-
 
 extension ChestDetailView {
     func getChestMedia() {
