@@ -495,12 +495,12 @@ extension ChestDetailView {
             
             // Add file with the correct field name
             multipartFormData.append(uploadData,
-                                   withName: "data",  // Match the field name expected by the server
-                                   fileName: "file.\(mimeType.split(separator: "/")[1])",
-                                   mimeType: mimeType)
+                                     withName: "data",  // Match the field name expected by the server
+                                     fileName: "file.\(mimeType.split(separator: "/")[1])",
+                                     mimeType: mimeType)
         }, to: url)
         .validate()
-        .response { response in  // Changed from responseDecodable to response
+        .response { [self] response in  // Changed from responseDecodable to response
             print("Full Response:", response.debugDescription)
             
             DispatchQueue.main.async {
@@ -509,8 +509,20 @@ extension ChestDetailView {
                     if let index = self.gameVM.chestList.firstIndex(of: self.chest) {
                         self.gameVM.chestList.remove(at: index)
                     }
+                    
+                    // Call chestMinus after successful upload
+                    let answer = answerType == .text ? textInEditor : "media_answer"
+                    self.chestMinus(answer: answer, correctness: "1") // Assume multimedia answers are correct
+                    
                     self.responseMessage = "Answer submitted successfully"
                     self.showMessage = true
+                    
+                    // Update game score for multimedia submission
+                    let points = chest.point ?? 0
+                    gameVM.score += points
+                    gameVM.updateScore(userID: self.settingStorage.userID, session: session)
+                    print("game score: \(gameVM.score)")
+                    
                 } else {
                     print("Upload failed with status code:", response.response?.statusCode ?? -1)
                     if let data = response.data, let errorStr = String(data: data, encoding: .utf8) {
@@ -522,7 +534,6 @@ extension ChestDetailView {
             }
         }
     }
-
 
     
     func checkAnswer(_ answer: String) {
