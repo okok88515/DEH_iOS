@@ -306,9 +306,9 @@ extension ChestDetailView {
                     Button("Image") {
                         answerType = .image
                     }
-                    Button("Audio") {
-                        answerType = .audio
-                    }
+//                    Button("Audio") {
+//                        answerType = .audio
+//                    }
                 } label: {
                     HStack {
                         Text("\("Answer Type".localized): \(answerType == .text ? "Text".localized : answerType == .image ? "Image".localized : "Audio".localized)")
