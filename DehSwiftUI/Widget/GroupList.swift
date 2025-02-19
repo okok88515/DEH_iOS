@@ -46,20 +46,38 @@ struct GroupList: View {
     }
 }
 extension GroupList{
-    func getGroupList(){
+    func getGroupList() {
         let url = GroupGetUserGroupListUrl
-        let parameters:[String:String] = [
-            "user_id": "\(settingStorage.userID)",
-            "coi_name": coi,
-            "language": "中文",
+        let parameters: [String: Any] = [
+            "userId": Int(settingStorage.userID) ?? -1,
+            "coiName": coi,
+            "language": "中文"
         ]
-        let publisher:DataResponsePublisher<GroupLists> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
+        
+        print("API Call to: \(url)")
+        print("Parameters: \(parameters)")
+        
+        let publisher: DataResponsePublisher<GroupLists> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
-            .sink(receiveValue: {(values) in
-//                print(values.data?.JsonPrint())
-                print(values.debugDescription)
-                self.groups = values.value?.results ?? []
-                print(self.groups)
+            .sink(receiveValue: { (values) in
+                print("Response: \(values.debugDescription)")
+                
+                if let error = values.error {
+                    print("Error: \(error)")
+                    return
+                }
+                
+                if let rawData = values.data {
+                    print("Raw Data: \(String(data: rawData, encoding: .utf8) ?? "Unable to decode raw data")")
+                }
+                
+                if let results = values.value?.results {
+                    print("Successfully got \(results.count) groups")
+                    self.groups = results
+                    print("Groups: \(results)")
+                } else {
+                    print("No results in response")
+                }
             })
     }
 }

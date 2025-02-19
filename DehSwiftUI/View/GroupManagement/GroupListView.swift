@@ -9,15 +9,15 @@
 import SwiftUI
 import Combine
 import Alamofire
+
 struct GroupListView: View {
-    
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @State var messageNotify: Bool = false
     @State var selection: Int? = nil
     @State var cellSelection: Int? = nil
     @State private var groupListCancellable: AnyCancellable?
     @State private var messageCancellable: AnyCancellable?
-    @EnvironmentObject var settingStorage:SettingStorage
+    @EnvironmentObject var settingStorage: SettingStorage
     @StateObject private var groupsModel = GroupsViewModel()
     
     var body: some View {
@@ -43,7 +43,6 @@ struct GroupListView: View {
                         }
                     }
                 }
-                
             }
             .listStyle(PlainListStyle())
             .navigationBarBackButtonHidden(true)
@@ -98,22 +97,41 @@ struct GroupListView: View {
     }
 }
 
-extension GroupListView{
-    func getGroupList(){
-        print(coi,"ssssssss")
+extension GroupListView {
+    func getGroupList() {
         let url = GroupGetUserGroupListUrl
-        let parameters:[String:String] = [
-            "user_id": "\(settingStorage.userID)",
-            "coi_name": coi,
-            "language": language,
+        let parameters: [String: Any] = [
+            "userId": Int(settingStorage.userID) ?? -1,
+            "coiName": coi,
+            "language": language
         ]
-        let publisher:DataResponsePublisher<GroupLists> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
+        
+        print("API Call to: \(url)")
+        print("Parameters: \(parameters)")
+        
+        let publisher: DataResponsePublisher<GroupLists> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.groupListCancellable = publisher
-            .sink(receiveValue: {(values) in
-                groupsModel.groups = values.value?.results ?? []
+            .sink(receiveValue: { (values) in
+                print("Response: \(values.debugDescription)")
                 
+                if let error = values.error {
+                    print("Error: \(error)")
+                    return
+                }
+                
+                if let rawData = values.data {
+                    print("Raw Data: \(String(data: rawData, encoding: .utf8) ?? "Unable to decode raw data")")
+                }
+                
+                if let results = values.value?.results {
+                    print("Successfully got \(results.count) groups")
+                    groupsModel.groups = results
+                } else {
+                    print("No results in response")
+                }
             })
     }
+    
     func getGroupMessage() {
         let url = GroupGetNotifiUrl
         let temp = """
@@ -122,20 +140,15 @@ extension GroupListView{
         }
         """
         let parameters = ["notification":temp]
-        let publisher:DataResponsePublisher<GroupMessage> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
+        let publisher: DataResponsePublisher<GroupMessage> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.messageCancellable = publisher
             .sink(receiveValue: { (values) in
-                //                print(values.debugD                                                                        escription)
                 let message = values.value?.message ?? ""
-                if(message == "have notification") {
-                    messageNotify = true
-                }
-                else {
-                    messageNotify = false
-                }
+                messageNotify = message == "have notification"
             })
     }
 }
+
 private class GroupsViewModel: ObservableObject {
     @Published var groups: [Group] = []
 }

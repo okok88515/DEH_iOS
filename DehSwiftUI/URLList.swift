@@ -23,13 +23,13 @@ let POIClickCountUrl: String = "https://deh.csie.ncku.edu.tw:8080/api/v1/poi_cou
 //MARK:- GroupUrl
 let GroupMemberJoinUrl: String = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/memberJoin"
 let GroupGetNotifiUrl:  String = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/notification"
-let GroupGetGroupUrl:   String = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/search"
+//let GroupGetGroupUrl:   String = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/search"
 let GroupInviteUrl:     String = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/message"
 let GroupGetMemberUrl:  String = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/checkMembers"
 let GroupCreatUrl:      String = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/add"
 let GroupUpdateUrl:     String = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/update"
 let GroupGetListUrl:    String = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/groupList"
-let GroupGetUserGroupListUrl:    String = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/searchUserGroups"
+let GroupGetUserGroupListUrl:    String = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/userGroups"
 let addGroupCountUrl:   String = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/addGroupLog"
 //let addGroupCountUrl:   String = "http:/140.116.82.130:8080//groups/addGroupLog"
 //MARK:- GameUrl
@@ -69,7 +69,7 @@ let getUserAnswerRecord = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/answe
 let getUserPoint = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/userPoint"
 
 let uploadMediaAnswerUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/uploadMediaAnswer"
-let FieldGetAllListUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/groups/listRegion"
+let FieldGetAllListUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/regionXois/listRegion"
 
 let CreateTempAccountUrl:      String = "https://deh.csie.ncku.edu.tw:8080/api/v1/users/createtempaccount"
 let AttachTempAccountUrl:      String = "https://deh.csie.ncku.edu.tw:8080/api/v1/users/attachtempaccount"
@@ -86,33 +86,34 @@ let getPois = "https://deh.csie.ncku.edu.tw:8080/api/v1/users/poisJSON"
 //    "/API/userSOI":"http://deh.csie.ncku.edu.tw:8080/api/v1/users/soisJSON",
 //]
 let getXois = [
-    "searchMyPOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/users/poisJSONResponseNormalize",
-    "searchMyLOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/users/loisJSONResponseNormalize",
-    "searchMyAOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/users/aoisJSONResponseNormalize",
-    "searchMySOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/users/soisJSONResponseNormalize",
+    "searchMyPOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/userXois/pois",
+    "searchMyLOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/userXois/lois",
+    "searchMyAOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/userXois/aois",
+    "searchMySOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/userXois/sois",
     
+    //not change to new API yet
     "searchGroupMyPOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/group/userPOIs",
     "searchGroupMyLOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/group/userLOIs",
     "searchGroupMyAOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/group/userAOIs",
     "searchGroupMySOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/group/userSOIs",
     
-    "searchGroupPOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/group/nearbyPOIs",
-    "searchGroupLOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/group/nearbyLOIs",
-    "searchGroupAOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/group/nearbyAOIs",
-    "searchGroupSOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/group/nearbySOIs",
+    "searchGroupPOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/groupXois/pois",
+    "searchGroupLOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/groupXois/lois",
+    "searchGroupAOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/groupXois/aois",
+    "searchGroupSOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/groupXois/sois",
     
-    "searchRegionPOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/region/nearbyPOIs",
-    "searchRegionLOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/region/nearbyLOIs",
-    "searchRegionAOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/region/nearbyAOIs",
-    "searchRegionSOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/region/nearbySOIs",
+    "searchRegionPOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/regionXois/pois",
+    "searchRegionLOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/regionXois/lois",
+    "searchRegionAOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/regionXois/aois",
+    "searchRegionSOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/regionXois/sois",
     
 ]
 
 let getNearbyXois = [
-    "searchNearbyPOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/nearby/pois",
-    "searchNearbyLOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/nearby/lois",
-    "searchNearbyAOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/nearby/aois",
-    "searchNearbySOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/nearby/sois",
+    "searchNearbyPOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/nearbyXois/pois",
+    "searchNearbyLOI":"https://deh.csie.ncku.edu.tw:8080/api/v1/nearbyXois/lois",
+    "searchNearbyAOI":"https://deh.csie.ncku.edu.tw:8080/api/v1//nearbyXois/aois",
+    "searchNearbySOI":"https://deh.csie.ncku.edu.tw:8080/api/v1//nearbyXois/sois",
 ]
 let addPoiCountUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/add_poi_log"
 //let getGroupXois = [

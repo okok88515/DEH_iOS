@@ -239,16 +239,17 @@ struct TabViewElement: View {
 }
 extension TabViewElement{
     func searchXOIs(action: String) {
-        print("User icon pressed...")
+        print("[API] Starting XOI search for action: \(action)")
         
-        // Only check group selection for group tab
+        // Group validation check
         if (group.id == 0) && (tabItemName == "group") {
+            print("[WARNING] No group selected for group tab")
             alertString = "please choose group".localized
             alertState = true
             return
         }
         
-        // Determine XOI category from action (for proper mapping later)
+        // Determine XOI category
         let xoiCategory: String
         if action.contains("POI") {
             xoiCategory = "poi"
@@ -262,21 +263,49 @@ extension TabViewElement{
             xoiCategory = "poi"
         }
         
-        let parameters: [String: String] = [
-            "username": settingStorage.account,
-            "lat": "\(locationManager.coordinateRegion.center.latitude)",
-            "lng": "\(locationManager.coordinateRegion.center.longitude)",
-            "dis": "\(settingStorage.searchDistance * 1000)",
-            "num": "\(settingStorage.searchNumber)",
-            "coi_name": coi,
-            "action": action,
-            "user_id": "\(settingStorage.userID)",
-            "group_id": "\(group.id)",
-            "region_id": "\(region.id)",
-            "language": "中文"
-        ]
+        // Build parameters based on action type
+        var parameters: [String: Any]
         
-        print(action)
+        if action.contains("Group") {
+            // Group XOI parameters
+            parameters = [
+                "latitude": locationManager.coordinateRegion.center.latitude,
+                "longitude": locationManager.coordinateRegion.center.longitude,
+                "distance": settingStorage.searchDistance * 1000,
+                "number": settingStorage.searchNumber,
+                "format": "image",
+                "coiName": coi,
+                "language": "中文",
+                "groupId": group.id
+            ]
+        } else if action.contains("Region") {
+            // Region XOI parameters
+            parameters = [
+                "latitude": locationManager.coordinateRegion.center.latitude,
+                "longitude": locationManager.coordinateRegion.center.longitude,
+                "distance": settingStorage.searchDistance * 1000,
+                "number": settingStorage.searchNumber,
+                "format": "image",
+                "coiName": coi,
+                "language": "中文",
+                "regionId": region.id
+            ]
+        } else {
+            // User XOI parameters
+            parameters = [
+                "username": settingStorage.account,
+                "latitude": locationManager.coordinateRegion.center.latitude,
+                "longitude": locationManager.coordinateRegion.center.longitude,
+                "number": settingStorage.searchNumber,
+                "coiName": coi,
+                "distance": settingStorage.searchDistance * 1000,
+                "language": "中文"
+            ]
+        }
+        
+        print("[API] Request URL: \(getXois[action] ?? "")")
+        print("[API] Parameters: \(parameters)")
+        
         let url = getXois[action] ?? ""
         let publisher: DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(
             url: url,
@@ -286,9 +315,29 @@ extension TabViewElement{
         
         self.cancellable = publisher
             .sink(receiveValue: { (values) in
+                print("[API] Received response: \(values.debugDescription)")
+                
+                if let error = values.error {
+                    print("[ERROR] Request failed: \(error)")
+                    self.alertString = "Error fetching data".localized
+                    self.alertState = true
+                    return
+                }
+                
+                // Check for message first
+                if let message = values.value?.message {
+                    print("[WARNING] API message: \(message)")
+                    if message == "not login" {
+                        self.alertString = "Please login first".localized
+                        self.alertState = true
+                    }
+                    return
+                }
+                
+                // Then handle results
                 if let xois = values.value?.results {
+                    print("[SUCCESS] Received \(xois.count) XOIs")
                     if !xois.isEmpty {
-                        // Set the correct category for each XOI
                         let categorizedXois = xois.map { xoi -> XOI in
                             let updatedXoi = xoi
                             updatedXoi.xoiCategory = xoiCategory
@@ -297,11 +346,14 @@ extension TabViewElement{
                         self.settingStorage.XOIs[self.tabItemName] = categorizedXois
                         self.settingStorage.mapType = self.tabItemName
                         self.hide_listState = false
+                        print("[DATA] Processed \(categorizedXois.count) XOIs")
                     } else {
+                        print("[WARNING] No XOIs found in response")
                         self.alertString = "No Data".localized
                         self.alertState = true
                     }
                 } else {
+                    print("[WARNING] No results in response")
                     self.alertString = "No Data".localized
                     self.alertState = true
                 }

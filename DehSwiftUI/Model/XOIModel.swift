@@ -25,6 +25,7 @@ import CoreLocation
 import MapKit
 class XOIList:Decodable{
     let results: [XOI]
+    let message: String?
 }
 struct media_set: Codable, Hashable {
     var media_type: String
@@ -56,13 +57,13 @@ class XOI: Identifiable, Decodable {
     }
     
     enum CodingKeys: String, CodingKey {
-        case id = "XOI_id"
-        case name = "XOI_title"
-        case detail = "XOI_description"
+        case id = "xoiId"
+        case name = "xoiTitle"
+        case detail = "xoiDescription"
         case latitude
         case longitude
         case creatorCategory = "identifier"
-        case media_set
+        case media_set = "mediaSet"
         case open
         case distance
         case containedXOIs
@@ -81,10 +82,16 @@ class XOI: Identifiable, Decodable {
         
         // Decode optional fields
         creatorCategory = try container.decodeIfPresent(String.self, forKey: .creatorCategory) ?? ""
-        open = try container.decodeIfPresent(Bool.self, forKey: .open) ?? false
         distance = try container.decodeIfPresent(Double.self, forKey: .distance) ?? 0.0
         containedXOIs = try container.decodeIfPresent([XOI].self, forKey: .containedXOIs)
         index = try container.decodeIfPresent(Int.self, forKey: .index)
+        
+        // Handle 'open' field that could be string or bool
+        if let openString = try? container.decode(String.self, forKey: .open) {
+            open = openString.lowercased() == "true"
+        } else if let openBool = try? container.decode(Bool.self, forKey: .open) {
+            open = openBool
+        }
         
         // Flexible media_set decoding
         if let singleMediaSet = try? container.decodeIfPresent(Array<media_set>.self, forKey: .media_set) {
@@ -92,7 +99,6 @@ class XOI: Identifiable, Decodable {
         } else if let nestedMediaSet = try? container.decodeIfPresent(Array<Array<media_set>>.self, forKey: .media_set) {
             media_set = nestedMediaSet.flatMap { $0 }
         }
-        // If both decodings fail, media_set remains an empty array from its initialization
     }
     
     init(id: Int, name: String, latitude: Double, longitude: Double, creatorCategory: String,

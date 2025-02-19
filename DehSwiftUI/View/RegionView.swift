@@ -61,13 +61,35 @@ struct RegionView: View {
 extension RegionView {
     func getFieldList() {
         let url = FieldGetAllListUrl
-        print(settingStorage.account)
-        let parameters = ["coi_name":coi, "language":"中文"]
-        let publisher:DataResponsePublisher<FieldList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
+        print("[API] Making request to: \(url)")
+        
+        let parameters: [String: Any] = [
+            "coiName": coi,
+            "language": "中文"
+        ]
+        print("[API] Request parameters: \(parameters)")
+        
+        let publisher: DataResponsePublisher<FieldList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
         self.cancellable = publisher
-            .sink(receiveValue: {(values) in
-                print(values.debugDescription)
-                self.regionList = values.value?.results ?? []
+            .sink(receiveValue: { (values) in
+                print("[API] Full response: \(values.debugDescription)")
+                
+                if let error = values.error {
+                    print("[ERROR] Request failed: \(error)")
+                    return
+                }
+                
+                if let rawData = values.data {
+                    print("[API] Raw response data: \(String(data: rawData, encoding: .utf8) ?? "Unable to decode")")
+                }
+                
+                if let results = values.value?.results {
+                    print("[SUCCESS] Received \(results.count) regions")
+                    self.regionList = results
+                    print("[DATA] Regions: \(results)")
+                } else {
+                    print("[WARNING] No results found in response")
+                }
             })
     }
 }

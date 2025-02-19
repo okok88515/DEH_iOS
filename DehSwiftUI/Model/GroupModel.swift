@@ -16,16 +16,16 @@ class Group: Identifiable, Codable, Hashable {
     var name: String
     var leaderId: Int?
     var info: String?
-    var startTime: String?  // Added
-    var endTime: String?    // Added
+    var startTime: String?
+    var endTime: String?
     
     enum CodingKeys: String, CodingKey {
-        case id
-        case name
-        case leaderId = "leaderId"
-        case info = "group_info"
-        case startTime = "startTime"  // Added
-        case endTime = "endTime"      // Added
+        case id = "groupId"         // Changed to match API's groupId
+        case name = "groupName"     // Changed to match API's groupName
+        case leaderId = "groupLeaderId"  // Changed to match API's groupLeaderId
+        case info = "groupInfo"     // Changed to match API's groupInfo
+        case startTime = "startTime"
+        case endTime = "endTime"
     }
     
     init(id: Int, name: String, leaderId: Int, info: String, startTime: String? = nil, endTime: String? = nil) {
