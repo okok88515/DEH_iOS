@@ -193,24 +193,24 @@ struct NearbyView: View {
 
 extension NearbyView{
     func searchXOIs(action: String) {
-        print("[API] Starting nearby XOI search for action: \(action)")
-        print("[API] Current location: (\(locationManager.coordinateRegion.center.latitude), \(locationManager.coordinateRegion.center.longitude))")
+        print("[DEBUG] Starting nearby XOI search with action: \(action) in NearbyView")
+        print("[DEBUG] Location coordinates: Lat: \(locationManager.coordinateRegion.center.latitude), Long: \(locationManager.coordinateRegion.center.longitude)")
         
-        // API expects numbers not strings, so send the values directly
+        // Updated parameters structure to match new API
         let parameters: [String: Any] = [
             "latitude": locationManager.coordinateRegion.center.latitude,
             "longitude": locationManager.coordinateRegion.center.longitude,
             "distance": Int(settingStorage.searchDistance * 1000),
             "number": Int(settingStorage.searchNumber),
+            "format": "all",  // Default format
             "coiName": coi,
-            "language": "中文",
-            "format": "image"
+            "language": "中文"
         ]
         
-        print("[API] Request parameters: \(parameters)")
+        print("[DEBUG] Request parameters: \(parameters)")
         
         let url = getNearbyXois[action] ?? ""
-        print("[API] Request URL: \(url)")
+        print("[DEBUG] Making request to URL: \(url)")
         
         let publisher: DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(
             url: url,
@@ -221,37 +221,32 @@ extension NearbyView{
         self.cancellable = publisher
             .sink(receiveValue: { (values) in
                 if let error = values.error {
-                    print("[ERROR] Request failed: \(error.localizedDescription)")
+                    print("[ERROR] Request failed with error: \(error.localizedDescription)")
                     if let underlyingError = error.underlyingError {
-                        print("[ERROR] Underlying error: \(underlyingError)")
+                        print("[ERROR] Underlying error details: \(underlyingError)")
                     }
                     return
                 }
                 
                 if let rawData = values.data {
-                    print("[API] Raw response data: \(String(data: rawData, encoding: .utf8) ?? "Unable to decode")")
+                    print("[DEBUG] Received raw response data: \(String(data: rawData, encoding: .utf8) ?? "Unable to decode")")
                 }
                 
                 if let xois = values.value?.results {
-                    print("[SUCCESS] Received \(xois.count) XOIs")
+                    print("[DEBUG] Successfully received \(xois.count) XOIs")
                     self.settingStorage.XOIs["nearby"] = xois
                     self.settingStorage.mapType = "nearby"
                 } else {
-                    print("[WARNING] No XOIs found in response")
+                    print("[WARNING] No XOIs found in response data")
                 }
             })
         
-        // Update UI state
-        if action == "searchNearbyPOI" {
-            print("[UI] Showing filter button for POI search")
-            showFilterButton = true
-        } else {
-            print("[UI] Hiding filter button for non-POI search")
-            showFilterButton = false
-        }
+        // Update UI state based on action
+        showFilterButton = (action == "searchNearbyPOI")
+        print("[DEBUG] Filter button visibility set to: \(showFilterButton)")
         
-        print("[UI] Showing XOI list")
         hide_listState = false
+        print("[DEBUG] XOI list visibility enabled")
     }
     @ViewBuilder func destinationSelector(xoi:XOI) -> some View{
         switch xoi.xoiCategory {

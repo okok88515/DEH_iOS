@@ -128,34 +128,86 @@ struct DEHMap: View {
 }
 
 extension DEHMap{
-    func searchXOIs(action:String){
-        print("User icon pressed...")
-        print(locationManager.coordinateRegion.center.latitude)
-        let parameters:[String:String] = [
-            "username": "\(settingStorage.account)",
-            "lat" :"\(locationManager.coordinateRegion.center.latitude)",
-            "lng": "\(locationManager.coordinateRegion.center.longitude)",
-            "dis": "\(settingStorage.searchDistance * 1000)",
-            "num": "\(settingStorage.searchNumber)",
-            "coi_name": coi,
-            "action": action,
-            "user_id": "\(settingStorage.userID)",
-            "password":"\(settingStorage.password)",
-            "language":"中文"
-        ]
-        let url = getNearbyXois[action] ?? ""
-        let publisher:DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
-        self.cancellable = publisher
-            .sink(receiveValue: {(values) in
-                self.settingStorage.XOIs["nearby"] = values.value?.results
-                print(locationManager.coordinateRegion.center.latitude)
-                self.settingStorage.mapType = "nearby"
-            })
-        if action == "searchNearbyPOI"{
-            showFilterButton = false
+    func searchXOIs(action: String) {
+        print("[API] Starting XOI search for action: \(action) in MapView")
+        
+        // Determine XOI category
+        let xoiCategory: String
+        if action.contains("POI") {
+            xoiCategory = "poi"
+        } else if action.contains("LOI") {
+            xoiCategory = "loi"
+        } else if action.contains("AOI") {
+            xoiCategory = "aoi"
+        } else if action.contains("SOI") {
+            xoiCategory = "soi"
+        } else {
+            xoiCategory = "poi"
         }
-        else{
+        print("[DATA] Selected XOI category: \(xoiCategory)")
+        
+        // Build parameters
+        let parameters: [String: Any] = [
+            "latitude": locationManager.coordinateRegion.center.latitude,
+            "longitude": locationManager.coordinateRegion.center.longitude,
+            "distance": Int(settingStorage.searchDistance * 1000),
+            "number": Int(settingStorage.searchNumber),
+            "format": "all",
+            "coiName": coi,
+            "language": "中文"
+        ]
+        
+        print("[API] Request URL: \(getNearbyXois[action] ?? "")")
+        print("[API] Parameters: \(parameters)")
+        
+        let url = getNearbyXois[action] ?? ""
+        let publisher: DataResponsePublisher<XOIList> = NetworkConnector().getDataPublisherDecodable(
+            url: url,
+            para: parameters,
+            addLogs: true
+        )
+        
+        self.cancellable = publisher
+            .sink(receiveValue: { (values) in
+                print("[API] Received response: \(values.debugDescription)")
+                
+                if let error = values.error {
+                    print("[ERROR] Request failed: \(error)")
+                    return
+                }
+                
+                if let rawData = values.data {
+                    print("[API] Raw response data: \(String(data: rawData, encoding: .utf8) ?? "Unable to decode")")
+                }
+                
+                if let xois = values.value?.results {
+                    print("[SUCCESS] Received \(xois.count) XOIs")
+                    if !xois.isEmpty {
+                        let categorizedXois = xois.map { xoi -> XOI in
+                            let updatedXoi = xoi
+                            updatedXoi.xoiCategory = xoiCategory
+                            return updatedXoi
+                        }
+                        self.settingStorage.XOIs["nearby"] = categorizedXois
+                        self.settingStorage.mapType = "nearby"
+                        print("[DATA] Processed \(categorizedXois.count) XOIs")
+                    } else {
+                        print("[WARNING] No XOIs found in response")
+                    }
+                } else {
+                    print("[WARNING] No results in response")
+                }
+            })
+            
+        // Update UI state
+        if action == "searchNearbyPOI" {
+            print("[UI] Showing filter button for POI search")
+            showFilterButton = false
+            POIselected = true
+        } else {
+            print("[UI] Hiding filter button for non-POI search")
             showFilterButton = true
+            POIselected = false
         }
     }
     @ViewBuilder func destinationSelector(xoi:XOI) -> some View{

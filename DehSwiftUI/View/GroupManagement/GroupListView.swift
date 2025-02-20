@@ -9,7 +9,6 @@
 import SwiftUI
 import Combine
 import Alamofire
-
 struct GroupListView: View {
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @State var messageNotify: Bool = false
@@ -75,6 +74,9 @@ struct GroupListView: View {
                     }
                 }
             })
+            
+            // Commented out Create Group functionality
+            /*
             NavigationLink(tag: 3, selection: $selection) {
                 GroupDetailView(Group(id: -1, name: "", leaderId: -1, info: ""))
             } label: {
@@ -88,6 +90,7 @@ struct GroupListView: View {
                         .font(.system(size: 30, weight: .bold, design: .default))
                 }
             }
+            */
         }
         .onAppear {
             getGroupList()

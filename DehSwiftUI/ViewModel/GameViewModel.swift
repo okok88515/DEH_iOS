@@ -328,56 +328,151 @@ class GameViewModel: ObservableObject {
         let results: Results
         
         struct Results: Codable {
-            let eventList: [Group]?
-            let groupList: [Group]?
-            
-            enum CodingKeys: String, CodingKey {
-                case eventList = "eventList"  // These might need to be adjusted
-                case groupList = "groupList"
-            }
+            let eventList: [EventItem]
+            let groupList: [EventItem]
         }
+    }
+    
+    // Model matching the API response structure
+    struct EventItem: Codable {
+        let id: Int
+        let name: String
+        let leaderId: Int
+        let startTime: String
+        let endTime: String
         
-        enum CodingKeys: String, CodingKey {
-            case results
+        // Convert to Group
+        func toGroup() -> Group {
+            return Group(
+                id: id,
+                name: name,
+                leaderId: leaderId,
+                info: "",  // Default empty info since it's not in the API response
+                startTime: startTime,
+                endTime: endTime
+            )
         }
     }
 
     func getGameList(userID: String) {
-        let url = privateGetGroupList
-        let parameters: [String:String] = [
+        print("\n=== GetGameList API Call ===")
+        print("URL:", privateGetGroupList)
+        print("Parameters: userId=\(userID), coiName=\(coi)")
+        
+        let parameters: [String: String] = [
             "userId": userID,
             "coiName": coi,
         ]
         
         var tempList: [gameListtuple] = []
-        let publisher: DataResponsePublisher<GameListResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters,addLogs: true)
+        let publisher: DataResponsePublisher<GameListResponse> = NetworkConnector().getDataPublisherDecodable(
+            url: privateGetGroupList,
+            para: parameters,
+            addLogs: true
+        )
         
         self.cancellable = publisher
             .sink(receiveValue: { [weak self] values in
-                print("Raw Response:", String(data: values.data ?? Data(), encoding: .utf8) ?? "No data")  // Add this debug line
+                print("\n=== GetGameList Response ===")
                 
-                if let results = values.value?.results {
-                    // Handle public events
-                    if let eventList = results.eventList {
-                        if (!eventList.isEmpty) {  // Only add if there are events
-                            tempList.append(gameListtuple("public".localized, eventList))
-                        }
-                    }
+                // Log HTTP Status Code
+                if let statusCode = values.response?.statusCode {
+                    print("HTTP Status Code:", statusCode)
+                }
+                
+                // Log Raw Response
+                if let data = values.data {
+                    print("Raw Response Data:", String(data: data, encoding: .utf8) ?? "Unable to decode response data")
                     
-                    // Handle private events
-                    if let groupList = results.groupList {
-                        if(!groupList.isEmpty) {
-                            tempList.append(gameListtuple("private".localized, groupList))
-                        }
-                    }
-                    
-                    self?.gameList = tempList
-                } else {
-                    print("Failed to decode results")
-                    if let error = values.error {
-                        print("Error:", error)
+                    // Pretty print JSON if possible
+                    if let json = try? JSONSerialization.jsonObject(with: data),
+                       let prettyData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted),
+                       let prettyString = String(data: prettyData, encoding: .utf8) {
+                        print("\nFormatted JSON Response:")
+                        print(prettyString)
                     }
                 }
+                
+                // Handle Decoding
+                if let results = values.value?.results {
+                    print("\nDecoding successful")
+                    
+                    // Log Event List
+                    print("\nPublic Events:")
+                    print("Count:", results.eventList.count)
+                    results.eventList.forEach { event in
+                        print("- Event: id=\(event.id), name=\(event.name), leaderId=\(event.leaderId)")
+                        print("  startTime=\(event.startTime), endTime=\(event.endTime)")
+                    }
+                    
+                    // Log Group List
+                    print("\nPrivate Groups:")
+                    print("Count:", results.groupList.count)
+                    results.groupList.forEach { group in
+                        print("- Group: id=\(group.id), name=\(group.name), leaderId=\(group.leaderId)")
+                        print("  startTime=\(group.startTime), endTime=\(group.endTime)")
+                    }
+                    
+                    // Process Events using correct gameListtuple initialization
+                    let eventGroups = results.eventList.map { $0.toGroup() }
+                    if !eventGroups.isEmpty {
+                        print("\nAdding \(eventGroups.count) public events to tempList")
+                        tempList.append(gameListtuple("public".localized, eventGroups))
+                    }
+                    
+                    // Process Groups using correct gameListtuple initialization
+                    let privateGroups = results.groupList.map { $0.toGroup() }
+                    if !privateGroups.isEmpty {
+                        print("\nAdding \(privateGroups.count) private groups to tempList")
+                        tempList.append(gameListtuple("private".localized, privateGroups))
+                    }
+                    
+                    print("\nFinal tempList count:", tempList.count)
+                    self?.gameList = tempList
+                    print("GameList updated successfully")
+                    
+                } else {
+                    print("\nDecoding Failed")
+                    
+                    // Log any errors
+                    if let error = values.error {
+                        print("Error:", error)
+                        
+                        // Detailed error logging for DecodingError
+                        if let decodingError = error.asAFError?.underlyingError as? DecodingError {
+                            print("\nDecoding Error Details:")
+                            switch decodingError {
+                            case .dataCorrupted(let context):
+                                print("Data Corrupted:")
+                                print("Debug Description:", context.debugDescription)
+                                print("Coding Path:", context.codingPath)
+                                
+                            case .keyNotFound(let key, let context):
+                                print("Key Not Found:")
+                                print("Missing Key:", key)
+                                print("Debug Description:", context.debugDescription)
+                                print("Coding Path:", context.codingPath)
+                                
+                            case .typeMismatch(let type, let context):
+                                print("Type Mismatch:")
+                                print("Expected Type:", type)
+                                print("Debug Description:", context.debugDescription)
+                                print("Coding Path:", context.codingPath)
+                                
+                            case .valueNotFound(let type, let context):
+                                print("Value Not Found:")
+                                print("Expected Type:", type)
+                                print("Debug Description:", context.debugDescription)
+                                print("Coding Path:", context.codingPath)
+                                
+                            @unknown default:
+                                print("Unknown Decoding Error:", decodingError)
+                            }
+                        }
+                    }
+                }
+                
+                print("\n=== GetGameList Completed ===")
             })
     }
 }

@@ -1,15 +1,6 @@
-//
-//  GroupModel.swift
-//  DehSwiftUI
-//
-//  Created by 阮盟雄 on 2021/4/14.
-//  Copyright © 2021 mmlab. All rights reserved.
-//
-
 import Foundation
 import SwiftUI
 import Alamofire
-
 
 class Group: Identifiable, Codable, Hashable {
     var id: Int
@@ -20,10 +11,10 @@ class Group: Identifiable, Codable, Hashable {
     var endTime: String?
     
     enum CodingKeys: String, CodingKey {
-        case id = "groupId"         // Changed to match API's groupId
-        case name = "groupName"     // Changed to match API's groupName
-        case leaderId = "groupLeaderId"  // Changed to match API's groupLeaderId
-        case info = "groupInfo"     // Changed to match API's groupInfo
+        case id = "groupId"
+        case name = "groupName"
+        case leaderId = "groupLeaderId"
+        case info = "groupInfo"
         case startTime = "startTime"
         case endTime = "endTime"
     }
@@ -45,40 +36,59 @@ class Group: Identifiable, Codable, Hashable {
         return lhs.id == rhs.id
     }
 }
-class GroupMember:Decodable,Identifiable {
-    var memberName:String
-    var memberRole:String
-    enum CodingKeys:String, CodingKey {
-        case memberName = "member_name"
-        case memberRole = "member_role"
+
+class GroupMember: Decodable, Identifiable {
+    var memberName: String
+    var memberRole: String
+    
+    enum CodingKeys: String, CodingKey {
+        case memberName = "userName"
+        case memberRole = "identifier"
     }
-    init(memberName:String, memberRole:String) {
+    
+    init(memberName: String, memberRole: String) {
         self.memberName = memberName
         self.memberRole = memberRole
     }
 }
-class GroupName:Decodable,Identifiable {
-    var name:String
-    init(name:String) {
-        self.name = name
+
+class GroupMemberList: Decodable {
+    let results: [GroupMember]
+}
+
+class GroupName: Decodable, Identifiable {
+    var name: String
+    var groupId: Int
+    var groupLeaderId: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case name = "groupName"
+        case groupId
+        case groupLeaderId
     }
     
-    enum CodingKeys:String, CodingKey {
-        case name = "group_name"
+    init(name: String, groupId: Int = -1, groupLeaderId: Int = -1) {
+        self.name = name
+        self.groupId = groupId
+        self.groupLeaderId = groupLeaderId
     }
 }
-class GroupNotification:Decodable, Identifiable,Equatable {
-    var groupName:String
-    var senderName:String
-    var messageType:String
-    var groupId:Int
+
+class GroupNameList: Decodable {
+    let results: [GroupName]
+}
+
+class GroupNotification: Decodable, Identifiable, Equatable {
+    var groupName: String
+    var senderName: String
+    var messageType: String
+    var groupId: Int
     
     static func == (lhs: GroupNotification, rhs: GroupNotification) -> Bool {
         return lhs.groupId == rhs.groupId
     }
     
-    
-    enum CodingKeys:String, CodingKey {
+    enum CodingKeys: String, CodingKey {
         case groupName = "group_name"
         case senderName = "sender_name"
         case messageType = "group_role"
@@ -86,9 +96,6 @@ class GroupNotification:Decodable, Identifiable,Equatable {
     }
 }
 
-class GroupMessage:Decodable {
-    var message:String
-}
-class GroupMemberList:Decodable {
-    let result:[GroupMember]
+class GroupMessage: Decodable {
+    var message: String
 }
