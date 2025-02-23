@@ -4,17 +4,6 @@ import Alamofire
 import AVFoundation
 import AVKit
 
-struct ChestMedia: Decodable {
-    var id: Int
-    var url: URL
-    var format: String
-    
-    enum CodingKeys: String, CodingKey {
-        case id = "ATT_id"
-        case url = "ATT_url"
-        case format = "ATT_format"
-    }
-}
 
 // Helper extension for Data
 extension Data {
@@ -177,9 +166,10 @@ struct ChestDetailView: View {
                             PagingView(index: $index.animation(), maxIndex: medias.count - 1) {
                                 ForEach(self.medias, id: \.data) { singleMedia in
                                     singleMedia.view()
+                                        .frame(height: geometry.size.height * 0.3)  // Increased from 0.25 to 0.3 (20% bigger)
                                 }
                             }
-                            .frame(height: geometry.size.height * 0.25)
+                            .frame(height: geometry.size.height * 0.3)  // Match the content height
                         }
 
                         // Answer Box - Moved up with ScrollView for long content
@@ -199,7 +189,7 @@ struct ChestDetailView: View {
                     }
                 }
                 .onAppear {
-                    getChestMedia()
+                    loadChestMedia()
                 }
                 .sheet(isPresented: $isShowPhotoLibrary) {
                     ImagePicker(selectedImage: $image, mediaData: $mediaData, sourceType: .photoLibrary)
@@ -422,21 +412,62 @@ extension ChestDetailView {
         let parameters: [String:String] = [
             "chest_id": "\(chest.id)",
         ]
-        let publisher: DataResponsePublisher<[ChestMedia]> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
+        
+        print("=== GetChestMedia API Call ===")
+        print("URL:", url)
+        print("Parameters:", parameters)
+        
+        let publisher: DataResponsePublisher<[ChestMedia]> = NetworkConnector().getDataPublisherDecodable(
+            url: url,
+            para: parameters,
+            addLogs: true
+        )
+        
         self.chestCancellable = publisher
-            .sink(receiveValue: {(values) in
-                if let value = values.value {
-                    self.chestMedia = value
+            .sink(receiveValue: { values in
+                // Print raw response for debugging
+                if let data = values.data {
+                    print("Raw response:", String(data: data, encoding: .utf8) ?? "No data")
                 }
-                for chestMedia in self.chestMedia {
-                    let publisher: DataResponsePublisher = NetworkConnector().getMediaPublisher(url: chestMedia.url)
-                    let cancelable = publisher
-                        .sink(receiveValue: {(values) in
-                            if let data = values.data {
-                                medias.append(MediaMulti(data:data, format:.Picture))
-                            }
-                        })
-                    self.mediaCancellable.append(cancelable)
+                
+                if let error = values.error {
+                    print("Error fetching chest media:", error)
+                    return
+                }
+                
+                if let mediaList = values.value {
+                    print("Received \(mediaList.count) media items")
+                    self.chestMedia = mediaList
+                    
+                    // Clear existing media
+                    self.medias.removeAll()
+                    self.mediaCancellable.removeAll()
+                    
+                    // Load each media item
+                    for media in mediaList {
+                        print("Loading media: format \(media.mediaFormat) from \(media.mediaUrl)")
+                        guard let mediaURL = media.url else {
+                            print("Invalid media URL:", media.mediaUrl)
+                            continue
+                        }
+                        
+                        let publisher: DataResponsePublisher = NetworkConnector().getMediaPublisher(url: mediaURL)
+                        
+                        let cancelable = publisher
+                            .sink(receiveValue: { values in
+                                if let data = values.data {
+                                    DispatchQueue.main.async {
+                                        self.medias.append(MediaMulti(data: data, format: media.mediaType))
+                                    }
+                                } else {
+                                    print("Failed to load media data")
+                                }
+                            })
+                        
+                        self.mediaCancellable.append(cancelable)
+                    }
+                } else {
+                    print("No media found for chest")
                 }
             })
     }
@@ -665,3 +696,42 @@ extension ChestDetailView {
    }
 
 
+extension ChestDetailView {
+    func loadChestMedia() {
+        // Clear existing media
+        self.medias.removeAll()
+        self.mediaCancellable.removeAll()
+        
+        // Use media directly from the chest model
+        if let mediaList = chest.medias {
+            print("Found \(mediaList.count) media items in chest")
+            
+            for media in mediaList {
+                print("Loading media: format \(media.mediaFormat) from \(media.mediaUrl)")
+                guard let mediaURL = media.url else {
+                    print("Invalid media URL:", media.mediaUrl)
+                    continue
+                }
+                
+                let publisher: DataResponsePublisher = NetworkConnector().getMediaPublisher(url: mediaURL)
+                
+                let cancelable = publisher
+                    .sink(receiveValue: { values in
+                        if let data = values.data {
+                            print("Successfully loaded media data of size:", data.count)
+                            DispatchQueue.main.async {
+                                self.medias.append(MediaMulti(data: data, format: media.mediaType))
+                                print("Added media to view, total count:", self.medias.count)
+                            }
+                        } else {
+                            print("Failed to load media data")
+                        }
+                    })
+                
+                self.mediaCancellable.append(cancelable)
+            }
+        } else {
+            print("No media found in chest")
+        }
+    }
+}
