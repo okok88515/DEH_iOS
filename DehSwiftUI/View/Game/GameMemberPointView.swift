@@ -25,8 +25,7 @@ struct GameMemberPoint: View {
             .background(Color.init(UIColor(rgba: lightGreen)))
             
             List {
-                ForEach(gamePointList.indices, id: \.self) { index in
-                    let gamePoint = gamePointList[index]
+                ForEach(gamePointList) { gamePoint in  // Use the model's Identifiable conformance
                     VStack(alignment: .leading, spacing: 12) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("題目")
@@ -96,6 +95,15 @@ struct GameMemberPoint: View {
             .listStyle(PlainListStyle())
         }
         .onAppear {
+            print("View appeared with gameID: \(gameID), userID: \(settingStorage.userID)") // Debug print
+            guard gameID > 0 else {
+                print("Invalid gameID: \(gameID)")
+                return
+            }
+            guard let userIDInt = Int(settingStorage.userID), userIDInt > 0 else {
+                print("Invalid userID: \(settingStorage.userID)")
+                return
+            }
             getMemberPoint()
         }
     }
@@ -114,20 +122,34 @@ struct GameMemberPoint: View {
 extension GameMemberPoint {
     func getMemberPoint() {
         let url = getUserAnswerRecord
-        let parameters: [String: String] = [
-            "userId": "\(settingStorage.userID)",
-            "gameId": "\(gameID)"
+        let parameters: Parameters = [
+            "userId": settingStorage.userID,
+            "gameId": String(gameID)
         ]
         
+        print("Making request with parameters:", parameters)
+        
         let publisher: DataResponsePublisher<GamePointResponse> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
+        
         self.cancellable = publisher
-            .sink(receiveValue: { values in
-                if let records = values.value?.results {
-                    let total = records.reduce(0) { $0 + ($1.point ?? 0) }
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { completion in
+                print("Request completion:", completion)
+            }, receiveValue: { response in
+                switch response.result {
+                case .success(let pointResponse):
+                    print("Parsed \(pointResponse.results.count) records")
+                    self.gamePointList = pointResponse.results
+                    self.totalScore = pointResponse.results.reduce(0) { $0 + ($1.point ?? 0) }
+                    print("Updated gamePointList with \(self.gamePointList.count) items")
                     
-                    DispatchQueue.main.async {
-                        self.gamePointList = records
-                        self.totalScore = total
+                case .failure(let error):
+                    print("Decoding failed with error:", error)
+                    
+                    // Print raw response for debugging
+                    if let data = response.data,
+                       let str = String(data: data, encoding: .utf8) {
+                        print("Raw Response:", str)
                     }
                 }
             })
