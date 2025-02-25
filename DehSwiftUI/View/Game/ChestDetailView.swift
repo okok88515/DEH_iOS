@@ -19,48 +19,128 @@ struct AudioRecordView: View {
     @Binding var recorder: Sounds?
     @Environment(\.presentationMode) var presentationMode
     @State private var isRecording = false
+    @State private var recordingDuration: TimeInterval = 0
+    @State private var timer: Timer?
     @State private var showPermissionDeniedAlert = false
-
+    @State private var playbackError: String? = nil
+    @State private var fileExists: Bool = false
+    
     var body: some View {
-        VStack(spacing: 40) {
+        VStack(spacing: 30) {
             Text("Record Your Answer")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
                 .padding(.top, 20)
             
-            VStack {
-                Button(action: {
-                    if isRecording {
-                        recorder?.stopRecord()
-                        audioURL = recorder?.tempVideoFileUrl
-                        isRecording = false
-                        presentationMode.wrappedValue.dismiss()
-                    } else {
-                        AVAudioSession.sharedInstance().requestRecordPermission { granted in
-                            DispatchQueue.main.async {
-                                if granted {
-                                    recorder = Sounds()
-                                    recorder?.recordSounds()
-                                    isRecording = true
-                                } else {
-                                    showPermissionDeniedAlert = true
-                                }
-                            }
-                        }
-                    }
-                }) {
-                    Image(systemName: isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                        .resizable()
+            // Recording indicator
+            if isRecording {
+                Text(timeString(from: recordingDuration))
+                    .font(.system(size: 28, design: .monospaced))
+                    .foregroundColor(.red)
+                    .padding()
+                
+                // Animated recording indicator
+                Circle()
+                    .fill(Color.red)
+                    .frame(width: 20, height: 20)
+                    .opacity(recordingDuration.truncatingRemainder(dividingBy: 1.0) < 0.5 ? 1.0 : 0.3)
+                    .animation(.easeInOut(duration: 0.5), value: recordingDuration)
+            }
+            
+            // Main record button
+            Button(action: {
+                if isRecording {
+                    stopRecording()
+                } else {
+                    startRecording()
+                }
+            }) {
+                ZStack {
+                    Circle()
+                        .fill(isRecording ? Color.red : Color.blue)
                         .frame(width: 100, height: 100)
-                        .foregroundColor(isRecording ? .red : .blue)
                         .shadow(color: .gray.opacity(0.5), radius: 10, x: 0, y: 5)
+                    
+                    Image(systemName: isRecording ? "stop.fill" : "mic.fill")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 35, height: 35)
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(.vertical, 20)
+            
+            Text(isRecording ? "Recording in Progress..." : "Press to Start Recording")
+                .foregroundColor(.secondary)
+                .font(.headline)
+            
+            // Show error message if playback failed
+            if let error = playbackError {
+                Text("Playback error: \(error)")
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .padding()
+            }
+            
+            // Playback controls (visible only after recording)
+            if !isRecording && audioURL != nil {
+                // Show if file exists
+                if fileExists {
+                    Text("Recording saved successfully")
+                        .foregroundColor(.green)
+                        .font(.caption)
+                        .padding(.bottom, 8)
+                    
+                    Button(action: {
+                        playRecording()
+                    }) {
+                        HStack {
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: 18))
+                            Text("Play Recording")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
+                } else {
+                    Text("Recording failed to save properly")
+                        .foregroundColor(.red)
+                        .font(.caption)
+                        .padding(.bottom, 8)
+                    
+                    Button(action: {
+                        startRecording()
+                    }) {
+                        Text("Try Recording Again")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.orange)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
                 }
                 
-                Text(isRecording ? "Recording in Progress..." : "Press to Start Recording")
-                    .foregroundColor(.secondary)
-                    .font(.headline)
-                    .padding(.top, 8)
+                Button(action: {
+                    self.presentationMode.wrappedValue.dismiss()
+                }) {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 18))
+                        Text(fileExists ? "Use This Recording" : "Continue Without Recording")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(fileExists ? Color.blue : Color.gray)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal)
             }
             
             Spacer()
@@ -81,8 +161,93 @@ struct AudioRecordView: View {
                 secondaryButton: .cancel()
             )
         }
+        .onDisappear {
+            timer?.invalidate()
+        }
+    }
+    
+    // Start recording with permission check
+    private func startRecording() {
+        AVAudioSession.sharedInstance().requestRecordPermission { granted in
+            DispatchQueue.main.async {
+                if granted {
+                    self.recorder = Sounds()
+                    self.recorder?.recordSounds()
+                    self.isRecording = true
+                    self.recordingDuration = 0
+                    self.playbackError = nil
+                    self.fileExists = false
+                    
+                    // Start timer to track recording duration
+                    self.timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+                        self.recordingDuration += 0.1
+                    }
+                } else {
+                    self.showPermissionDeniedAlert = true
+                }
+            }
+        }
+    }
+    
+    // Stop recording and save file
+    private func stopRecording() {
+        recorder?.stopRecord()
+        audioURL = recorder?.tempVideoFileUrl
+        isRecording = false
+        timer?.invalidate()
+        
+        // Check if file exists
+        if let url = audioURL {
+            fileExists = FileManager.default.fileExists(atPath: url.path)
+            print("📂 Audio saved to: \(url.path), exists: \(fileExists)")
+            
+            if fileExists {
+                if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+                   let size = attrs[.size] as? UInt64 {
+                    print("📊 Size: \(size) bytes")
+                }
+            } else {
+                print("❌ File does not exist at path: \(url.path)")
+            }
+        }
+    }
+    
+    // Safely play the recording
+    private func playRecording() {
+        guard let url = audioURL else {
+            playbackError = "No audio URL"
+            return
+        }
+        
+        // Check if file exists
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            playbackError = "File not found at \(url.lastPathComponent)"
+            print("❌ Error: Audio file not found at \(url.path)")
+            return
+        }
+        
+        do {
+            let audioData = try Data(contentsOf: url)
+            print("📢 Playing audio data of size: \(audioData.count) bytes")
+            
+            // Try to play the audio
+            Sounds.playSounds(soundData: audioData)
+            playbackError = nil
+        } catch {
+            playbackError = error.localizedDescription
+            print("❌ Error playing audio: \(error.localizedDescription)")
+        }
+    }
+    
+    // Format time interval for display
+    private func timeString(from timeInterval: TimeInterval) -> String {
+        let minutes = Int(timeInterval) / 60
+        let seconds = Int(timeInterval) % 60
+        let tenths = Int((timeInterval - floor(timeInterval)) * 10)
+        return String(format: "%02d:%02d.%01d", minutes, seconds, tenths)
     }
 }
+
 
 
 
@@ -296,9 +461,9 @@ extension ChestDetailView {
                     Button("Image") {
                         answerType = .image
                     }
-//                    Button("Audio") {
-//                        answerType = .audio
-//                    }
+                    Button("Audio") {
+                        answerType = .audio
+                    }
                 } label: {
                     HStack {
                         Text("\("Answer Type".localized): \(answerType == .text ? "Text".localized : answerType == .image ? "Image".localized : "Audio".localized)")
@@ -366,8 +531,28 @@ extension ChestDetailView {
                             if let audioData = try? Data(contentsOf: url) {
                                 let media = MediaMulti(data: audioData, format: .Voice)
                                 media.view()
+                                    .frame(height: 120)
+                                    .background(Color.gray.opacity(0.1))
+                                    .cornerRadius(12)
                             }
+                        } else {
+                            // Placeholder when no audio is recorded
+                            VStack {
+                                Image(systemName: "waveform")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 60, height: 60)
+                                    .foregroundColor(.gray.opacity(0.5))
+                                Text("No audio recorded")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(height: 120)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(12)
                         }
+                        
                         Button(audioURL == nil ? "Record Audio" : "Re-record Audio") {
                             showAudioRecorder = true
                         }
@@ -407,6 +592,7 @@ extension ChestDetailView {
 }
 
 extension ChestDetailView {
+    // this one has problem and claude use loadChestMedia to replace
     func getChestMedia() {
         let url = getChestMediaUrl
         let parameters: [String:String] = [
@@ -473,93 +659,135 @@ extension ChestDetailView {
     }
     
     func submitMultimediaAnswer() {
-        let parameters: [String: String] = [
-            "user_id": "\(settingStorage.userID)",
-            "chest_id": "\(chest.id)",
-            "game_id": "\(session.gameID)",
-            "lat": "\(locationManager.coordinateRegion.center.latitude)",
-            "lng": "\(locationManager.coordinateRegion.center.longitude)",
-            "point": "\(chest.point ?? 0)",
-            "txt": textInEditor
+        // Create the parameters object
+        let parametersDict: [String: Any] = [
+            "userId": settingStorage.userID,
+            "chestId": chest.id,
+            "gameId": session.gameID,
+            "userAnswer": textInEditor,
+            "latitude": locationManager.coordinateRegion.center.latitude,
+            "longitude": locationManager.coordinateRegion.center.longitude
         ]
         
-        var inputData: Data?
-        var mimeType: String = ""
-        
-        switch answerType {
-        case .image:
-            if let imageData = mediaData {
-                inputData = imageData
-                mimeType = "image/jpeg"
-            } else if let jpegData = image.jpegData(compressionQuality: 0.8) {
-                inputData = jpegData
-                mimeType = "image/jpeg"
-            }
-        case .audio:
-            if let audioURL = audioURL {
-                inputData = try? Data(contentsOf: audioURL)
-                mimeType = "audio/m4a"
-            }
-        case .text:
-            inputData = textInEditor.data(using: .utf8)
-            mimeType = "text/plain"
-        }
-        
-        guard let uploadData = inputData else {
-            responseMessage = "No data to upload"
+        // Convert the parameters to a JSON string
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: parametersDict),
+              let paramsString = String(data: jsonData, encoding: .utf8) else {
+            responseMessage = "Failed to create request parameters"
             showMessage = true
             return
         }
         
-        // Debug prints
-        print("Uploading with parameters:", parameters)
-        print("MIME Type:", mimeType)
-        print("Upload Data Size:", uploadData.count)
+        print("=== Submitting Multimedia Answer ===")
+        print("Parameters:", parametersDict)
         
-        let url = uploadMediaAnswerUrl
+        // Prepare media data based on answer type
+        var mediaData: Data?
+        var mimeType: String = ""
+        var fileExtension: String = ""
         
-        AF.upload(multipartFormData: { multipartFormData in
-            // Add parameters
-            for (key, value) in parameters {
-                multipartFormData.append(Data(value.utf8), withName: key)
+        switch answerType {
+        case .image:
+            if let imgData = self.mediaData {
+                mediaData = imgData
+                mimeType = "image/png"
+                fileExtension = "png"
+            } else if let pngData = image.pngData() {
+                mediaData = pngData
+                mimeType = "image/png"
+                fileExtension = "png"
             }
             
-            // Add file with the correct field name
+        case .audio:
+            if let url = audioURL {
+                // Verify the file exists
+                if FileManager.default.fileExists(atPath: url.path) {
+                    do {
+                        mediaData = try Data(contentsOf: url)
+                        
+                        // Use M4A format but tell the server it's MP3 for compatibility
+                        mimeType = "audio/mpeg"  // Standard MP3 MIME type
+                        fileExtension = "mp3"    // Use MP3 extension for Windows
+                        
+                        print("📁 Audio file size for upload: \(mediaData?.count ?? 0) bytes")
+                    } catch {
+                        print("❌ Error reading audio file: \(error)")
+                        responseMessage = "Error reading audio: \(error.localizedDescription)"
+                        showMessage = true
+                        return
+                    }
+                } else {
+                    print("❌ Audio file not found at: \(url.path)")
+                    responseMessage = "Audio file not found"
+                    showMessage = true
+                    return
+                }
+            } else {
+                responseMessage = "No audio recorded"
+                showMessage = true
+                return
+            }
+            
+        case .text:
+            checkAnswer(textInEditor)
+            return
+        }
+        
+        // Make sure we have media data
+        guard let uploadData = mediaData else {
+            responseMessage = "No media data to upload"
+            showMessage = true
+            return
+        }
+        
+        // IMPORTANT: Call chestMinus first to register the answer with the backend
+        // This ensures the answer is registered even if media upload fails
+        let userAnswerValue = "media_answer" // Use a consistent value for multimedia answers
+        chestMinus(answer: userAnswerValue, correctness: "1") // Multimedia answers are treated as correct
+        
+        // Create the multipart request to match your backend
+        let url = uploadMediaAnswerUrl
+        
+        print("🚀 Uploading \(fileExtension) file with MIME type: \(mimeType)")
+        print("📊 File size: \(uploadData.count) bytes")
+        
+        AF.upload(multipartFormData: { multipartFormData in
+            // Add the params JSON string
+            multipartFormData.append(paramsString.data(using: .utf8)!, withName: "params")
+            
+            // Add the file with field name 'data' as expected by your backend
             multipartFormData.append(uploadData,
-                                     withName: "data",  // Match the field name expected by the server
-                                     fileName: "file.\(mimeType.split(separator: "/")[1])",
-                                     mimeType: mimeType)
+                                    withName: "data",
+                                    fileName: "file.\(fileExtension)",
+                                    mimeType: mimeType)
+            
         }, to: url)
+        .uploadProgress { progress in
+            print("📤 Upload progress: \(Int(progress.fractionCompleted * 100))%")
+        }
         .validate()
-        .response { [self] response in  // Changed from responseDecodable to response
-            print("Full Response:", response.debugDescription)
+        .response { response in
+            print("📥 Upload Response Status: \(response.response?.statusCode ?? -1)")
+            
+            if let data = response.data, let rawString = String(data: data, encoding: .utf8) {
+                print("📄 Response: \(rawString)")
+            }
             
             DispatchQueue.main.async {
-                // Consider 200 status code as success, regardless of response body
                 if response.response?.statusCode == 200 {
+                    // Remove the chest from the list
                     if let index = self.gameVM.chestList.firstIndex(of: self.chest) {
                         self.gameVM.chestList.remove(at: index)
                     }
                     
-                    // Call chestMinus after successful upload
-                    let answer = answerType == .text ? textInEditor : "media_answer"
-                    self.chestMinus(answer: answer, correctness: "1") // Assume multimedia answers are correct
+                    // Update game score
+                    let points = self.chest.point ?? 0
+                    self.gameVM.score += points
+                    self.gameVM.updateScore(userID: self.settingStorage.userID, session: self.session)
                     
                     self.responseMessage = "Answer submitted successfully"
                     self.showMessage = true
-                    
-                    // Update game score for multimedia submission
-                    let points = chest.point ?? 0
-                    gameVM.score += points
-                    gameVM.updateScore(userID: self.settingStorage.userID, session: session)
-                    print("game score: \(gameVM.score)")
-                    
                 } else {
-                    print("Upload failed with status code:", response.response?.statusCode ?? -1)
-                    if let data = response.data, let errorStr = String(data: data, encoding: .utf8) {
-                        print("Error response:", errorStr)
-                    }
-                    self.responseMessage = "Failed to submit answer"
+                    self.responseMessage = "Media upload failed, but answer was registered"
                     self.showMessage = true
                 }
             }
