@@ -68,7 +68,7 @@ let getUserAnswerRecord = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/answe
 
 let getUserPoint = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/userPoint"
 
-let uploadMediaAnswerUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/uploadMediaAnswer"
+let uploadMediaAnswerUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/events/uploadMediaAnswer"
 let FieldGetAllListUrl = "https://deh.csie.ncku.edu.tw:8080/api/v1/regionXois/listRegion"
 
 let CreateTempAccountUrl:      String = "https://deh.csie.ncku.edu.tw:8080/api/v1/users/createtempaccount"

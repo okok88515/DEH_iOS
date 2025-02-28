@@ -455,18 +455,18 @@ extension ChestDetailView {
         case 3: // Essay/Media Question
             VStack {
                 Menu {
-                    Button("Text") {
+                    Button("文字") {
                         answerType = .text
                     }
-                    Button("Image") {
+                    Button("文字 + 圖片") {
                         answerType = .image
                     }
-                    Button("Audio") {
+                    Button("文字 + 語音") {
                         answerType = .audio
                     }
                 } label: {
                     HStack {
-                        Text("\("Answer Type".localized): \(answerType == .text ? "Text".localized : answerType == .image ? "Image".localized : "Audio".localized)")
+                        Text("\("Answer Type".localized): \(answerType == .text ? "文字" : answerType == .image ? "文字 ＋ 圖片" : "文字 ＋ 語音")")
                             .font(.headline)
                         Image(systemName: "chevron.down")
                             .font(.system(size: 14, weight: .semibold))
@@ -478,32 +478,33 @@ extension ChestDetailView {
                 }
                 .padding(.horizontal)
 
-                switch answerType {
-                case .text:
-                    ZStack(alignment: .leading) {
-                        if textInEditor.isEmpty {
-                            Text("Please enter here")
-                                .foregroundColor(.gray)
-                                .padding(.horizontal, 8)
-                        }
-                        TextEditor(text: $textInEditor)
-                            .padding(8)
-                            .frame(height: geometry.size.height * 0.2)
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 3)
+                // Text input always visible regardless of answer type
+                ZStack(alignment: .leading) {
+                    if textInEditor.isEmpty {
+                        Text("Please enter your text answer here")
+                            .foregroundColor(.gray)
+                            .padding(.horizontal, 8)
                     }
-                
-                case .image:
+                    TextEditor(text: $textInEditor)
+                        .padding(8)
+                        .frame(height: geometry.size.height * 0.15)
+                        .background(Color.white)
+                        .cornerRadius(12)
+                        .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 3)
+                }
+                .padding(.horizontal)
+
+                // Conditional display of media inputs based on answer type
+                if answerType == .image {
                     VStack {
                         if let media = mediaData.flatMap({ data in MediaMulti(data: data, format: .Picture) }) {
                             media.view()
-                                .frame(height: 200)
+                                .frame(height: 150)
                         } else {
                             Image(uiImage: self.image)
                                 .resizable()
                                 .scaledToFit()
-                                .frame(height: 200)
+                                .frame(height: 150)
                                 .background(Color.gray.opacity(0.2))
                                 .cornerRadius(12)
                         }
@@ -517,21 +518,21 @@ extension ChestDetailView {
                                 Text("Choose Photo")
                                     .font(.headline)
                             }
-                            .frame(maxWidth: .infinity, minHeight: 50)
+                            .frame(maxWidth: .infinity, minHeight: 40)
                             .background(Color.blue)
                             .foregroundColor(.white)
                             .cornerRadius(20)
                             .padding(.horizontal)
                         }
                     }
-                
-                case .audio:
+                    .padding(.horizontal)
+                } else if answerType == .audio {
                     VStack {
                         if let url = audioURL {
                             if let audioData = try? Data(contentsOf: url) {
                                 let media = MediaMulti(data: audioData, format: .Voice)
                                 media.view()
-                                    .frame(height: 120)
+                                    .frame(height: 100)
                                     .background(Color.gray.opacity(0.1))
                                     .cornerRadius(12)
                             }
@@ -541,13 +542,13 @@ extension ChestDetailView {
                                 Image(systemName: "waveform")
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(width: 60, height: 60)
+                                    .frame(width: 40, height: 40)
                                     .foregroundColor(.gray.opacity(0.5))
                                 Text("No audio recorded")
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
                             }
-                            .frame(height: 120)
+                            .frame(height: 100)
                             .frame(maxWidth: .infinity)
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(12)
@@ -557,17 +558,31 @@ extension ChestDetailView {
                             showAudioRecorder = true
                         }
                         .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .frame(maxWidth: .infinity, minHeight: 40)
                         .background(Color.blue)
                         .cornerRadius(20)
                         .padding(.horizontal)
                     }
+                    .padding(.horizontal)
                 }
                 
                 Button(action: {
                     if answerType == .text {
-                        checkAnswer(textInEditor)
-                        insertAnswer(answer: textInEditor, correctness: "\(self.chest.answer == textInEditor ? "1" : "0")")
+                        // No longer checking if answer is correct, just submitting to backend
+                        chestMinus(answer: textInEditor, correctness: "1")
+                        
+                        // Remove the chest from the list
+                        if let index = self.gameVM.chestList.firstIndex(of: self.chest) {
+                            self.gameVM.chestList.remove(at: index)
+                        }
+                        
+                        // Update game score
+                        let points = self.chest.point ?? 0
+                        self.gameVM.score += points
+                        self.gameVM.updateScore(userID: self.settingStorage.userID, session: self.session)
+                        
+                        responseMessage = "Answer submitted successfully"
+                        showMessage = true
                     } else {
                         submitMultimediaAnswer()
                     }
@@ -664,7 +679,7 @@ extension ChestDetailView {
             "userId": settingStorage.userID,
             "chestId": chest.id,
             "gameId": session.gameID,
-            "userAnswer": textInEditor,
+            "userAnswer": textInEditor, // Use text input for all answer types
             "latitude": locationManager.coordinateRegion.center.latitude,
             "longitude": locationManager.coordinateRegion.center.longitude
         ]
@@ -695,6 +710,10 @@ extension ChestDetailView {
                 mediaData = pngData
                 mimeType = "image/png"
                 fileExtension = "png"
+            } else {
+                responseMessage = "No image selected"
+                showMessage = true
+                return
             }
             
         case .audio:
@@ -728,7 +747,7 @@ extension ChestDetailView {
             }
             
         case .text:
-            checkAnswer(textInEditor)
+            // This case should no longer reach here as it's handled directly in the button action
             return
         }
         
@@ -741,8 +760,7 @@ extension ChestDetailView {
         
         // IMPORTANT: Call chestMinus first to register the answer with the backend
         // This ensures the answer is registered even if media upload fails
-        let userAnswerValue = "media_answer" // Use a consistent value for multimedia answers
-        chestMinus(answer: userAnswerValue, correctness: "1") // Multimedia answers are treated as correct
+        chestMinus(answer: textInEditor, correctness: "1") // Always pass 1 for correctness
         
         // Create the multipart request to match your backend
         let url = uploadMediaAnswerUrl
@@ -794,7 +812,8 @@ extension ChestDetailView {
         }
     }
 
-    
+    // All the points are given from backend by the getUserPoint url, not calculated in this view like before. So ignore all the point calculation related code in this view.
+    // The points are calculated and stored on the backend server
     func checkAnswer(_ answer: String) {
         if(answer == "T" || answer == "F" ) {
             if(self.chest.answer == answer) {
@@ -830,7 +849,7 @@ extension ChestDetailView {
         showMessage = true
         chestMinus(answer: answer, correctness: "\(self.chest.answer == answer ? "1" : "0")")
     }
-    
+    //this is useless now
     func insertAnswer(answer: String, correctness: String) {
             let url = insertAnswerUrl
             let parameters: [String:String] = [
@@ -856,6 +875,7 @@ extension ChestDetailView {
                     self.showMessage = true
                 })
         }
+    // the corretness passed into chestMinus is useless, backend will compare user answer and correct answer again to determine if user can get points
     func chestMinus(answer: String, correctness: String) {
         let url = chestMinusUrl
         let parameters: [String: Any] = [

@@ -297,7 +297,7 @@ class GameViewModel: ObservableObject {
         let userId: Int
         let correctAnswers: Int
     }
-
+    // get user point from backend instead of calculating it in chestdetailview
     func updateScore(userID: String, session: SessionModel) {
         let url = getUserPoint
         let parameters: [String: String] = [
