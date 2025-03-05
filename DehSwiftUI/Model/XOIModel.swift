@@ -1,59 +1,50 @@
-/*
- See LICENSE folder for this sample’s licensing information.
- 
- Abstract:
- The model for an individual landmark.
- */
-
 import SwiftUI
 import CoreLocation
-
-// get set : 讀／寫
-//protocol XOIProtocol:Identifiable {
-//    var id: Int{get set}
-//    var name: String{get set}
-//    var latitude: Double{get set}
-//    var longitude: Double{get set}
-//    var creatorCategory: String{get set}
-//    var xoiCategory: String{get set}
-//    var detail: String{get set}
-//    var viewNumbers: Int{get set}
-//    var mediaCategory: String{get set}
-//    func getLocationCoordinate()-> CLLocationCoordinate2D
-//}
-
 import MapKit
-class XOIList:Decodable{
+
+// MARK: - Media Set Struct
+struct MediaSet: Codable, Hashable {
+    var mediaType: String
+    var mediaFormat: Int
+    var mediaUrl: String
+    
+    init(mediaType: String, mediaFormat: Int, mediaUrl: String) {
+        self.mediaType = mediaType
+        self.mediaFormat = mediaFormat
+        self.mediaUrl = mediaUrl
+    }
+}
+
+// MARK: - XOI List Wrapper
+struct XOIList: Codable {
     let results: [XOI]
     let message: String?
-}
-struct media_set: Codable, Hashable {
-    var media_type: String
-    var media_format: Int
-    var media_url: String
+    
+    init(results: [XOI], message: String? = nil) {
+        self.results = results
+        self.message = message
+    }
 }
 
-class XOI: Identifiable, Decodable {
+// MARK: - XOI Model
+class XOI: Identifiable, Codable, Hashable {
     var containedXOIs: [XOI]?
-    var id: Int = 0
-    var name: String = ""
-    var latitude: Double = 0.0
-    var longitude: Double = 0.0
-    var creatorCategory: String = ""
-    var xoiCategory: String = "poi"
-    var detail: String = ""
-    var viewNumbers: Int = 0
-    var mediaCategory: String = ""
-    var distance: Double = 0.0
-    var media_set: [media_set] = []
-    var open: Bool = false
-    var index: Int? = -1
+    let id: Int
+    let name: String
+    let latitude: Double
+    let longitude: Double
+    let creatorCategory: String
+    var xoiCategory: String
+    let detail: String
+    var viewNumbers: Int
+    var mediaCategory: String
+    let distance: Double? // Made optional to handle missing values
+    var mediaSet: [MediaSet] = []
+    let open: Bool
+    let index: Int?
     
     var coordinate: CLLocationCoordinate2D {
-        return CLLocationCoordinate2D(
-            latitude: latitude,
-            longitude: longitude
-        )
+        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
     
     enum CodingKeys: String, CodingKey {
@@ -63,11 +54,14 @@ class XOI: Identifiable, Decodable {
         case latitude
         case longitude
         case creatorCategory = "identifier"
-        case media_set = "mediaSet"
+        case mediaSet
         case open
         case distance
         case containedXOIs
         case index
+        case xoiCategory
+        case viewNumbers
+        case mediaCategory
     }
     
     required init(from decoder: Decoder) throws {
@@ -80,29 +74,76 @@ class XOI: Identifiable, Decodable {
         longitude = try container.decode(Double.self, forKey: .longitude)
         detail = try container.decode(String.self, forKey: .detail)
         
-        // Decode optional fields
+        // Decode optional fields with defaults
         creatorCategory = try container.decodeIfPresent(String.self, forKey: .creatorCategory) ?? ""
-        distance = try container.decodeIfPresent(Double.self, forKey: .distance) ?? 0.0
+        distance = try container.decodeIfPresent(Double.self, forKey: .distance)
         containedXOIs = try container.decodeIfPresent([XOI].self, forKey: .containedXOIs)
         index = try container.decodeIfPresent(Int.self, forKey: .index)
+        xoiCategory = try container.decodeIfPresent(String.self, forKey: .xoiCategory) ?? "poi"
+        viewNumbers = try container.decodeIfPresent(Int.self, forKey: .viewNumbers) ?? 0
+        mediaCategory = try container.decodeIfPresent(String.self, forKey: .mediaCategory) ?? "none"
         
         // Handle 'open' field that could be string or bool
         if let openString = try? container.decode(String.self, forKey: .open) {
             open = openString.lowercased() == "true"
+            print("[DEBUG] Decoded 'open' as string: \(openString) -> \(open)")
         } else if let openBool = try? container.decode(Bool.self, forKey: .open) {
             open = openBool
+            print("[DEBUG] Decoded 'open' as bool: \(open)")
+        } else {
+            open = false // Default value
+            print("[DEBUG] Could not decode 'open', using default: false")
         }
         
-        // Flexible media_set decoding
-        if let singleMediaSet = try? container.decodeIfPresent(Array<media_set>.self, forKey: .media_set) {
-            media_set = singleMediaSet
-        } else if let nestedMediaSet = try? container.decodeIfPresent(Array<Array<media_set>>.self, forKey: .media_set) {
-            media_set = nestedMediaSet.flatMap { $0 }
+        // Decode mediaSet
+        do {
+            mediaSet = try container.decodeIfPresent([MediaSet].self, forKey: .mediaSet) ?? []
+            print("[DEBUG] Decoded \(mediaSet.count) media items for XOI \(id)")
+            mediaSet.forEach { media in
+                print("[DEBUG] - Media: type=\(media.mediaType), format=\(media.mediaFormat), url=\(media.mediaUrl)")
+            }
+        } catch {
+            mediaSet = []
+            print("[DEBUG] Failed to decode mediaSet for XOI \(id): \(error.localizedDescription)")
+        }
+        
+        // Set mediaCategory based on first media item (if not already set)
+        if mediaCategory == "none", let firstMedia = mediaSet.first {
+            switch firstMedia.mediaFormat {
+            case 1: mediaCategory = "image"
+            case 2: mediaCategory = "audio"
+            case 4: mediaCategory = "video"
+            case 8: mediaCategory = "commentary"
+            default: mediaCategory = "none"
+            }
         }
     }
     
+    // Custom encoder to handle optional and mutable properties
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(latitude, forKey: .latitude)
+        try container.encode(longitude, forKey: .longitude)
+        try container.encode(detail, forKey: .detail)
+        try container.encode(creatorCategory, forKey: .creatorCategory)
+        try container.encode(open, forKey: .open)
+        try container.encode(xoiCategory, forKey: .xoiCategory)
+        try container.encode(viewNumbers, forKey: .viewNumbers)
+        try container.encode(mediaCategory, forKey: .mediaCategory)
+        try container.encode(mediaSet, forKey: .mediaSet)
+        
+        try container.encodeIfPresent(distance, forKey: .distance)
+        try container.encodeIfPresent(containedXOIs, forKey: .containedXOIs)
+        try container.encodeIfPresent(index, forKey: .index)
+    }
+    
+    // Manual initializer for testing
     init(id: Int, name: String, latitude: Double, longitude: Double, creatorCategory: String,
-         xoiCategory: String, detail: String, viewNumbers: Int, mediaCategory: String) {
+         xoiCategory: String = "poi", detail: String, viewNumbers: Int = 0, mediaCategory: String = "none",
+         distance: Double? = 0.0, mediaSet: [MediaSet] = [], open: Bool = true, index: Int? = nil) {
         self.id = id
         self.name = name
         self.latitude = latitude
@@ -112,9 +153,13 @@ class XOI: Identifiable, Decodable {
         self.detail = detail
         self.viewNumbers = viewNumbers
         self.mediaCategory = mediaCategory
+        self.distance = distance
+        self.mediaSet = mediaSet
+        self.open = open
+        self.index = index
     }
-}
-extension XOI:Hashable,Encodable{
+    
+    // Hashable implementation
     static func == (lhs: XOI, rhs: XOI) -> Bool {
         return lhs.id == rhs.id && lhs.xoiCategory == rhs.xoiCategory
     }
@@ -123,17 +168,12 @@ extension XOI:Hashable,Encodable{
         hasher.combine(id)
     }
     
-    func region() -> MKCoordinateRegion{
-        return MKCoordinateRegion(center: coordinate, latitudinalMeters:20000,longitudinalMeters:20000)
+    // Additional utility methods
+    func region() -> MKCoordinateRegion {
+        return MKCoordinateRegion(center: coordinate, latitudinalMeters: 20000, longitudinalMeters: 20000)
     }
     
-    func setContainedXOI(XOIs:[XOI]){
+    func setContainedXOI(XOIs: [XOI]) {
         self.containedXOIs = XOIs
     }
 }
-
-
-
-
-
-

@@ -139,7 +139,7 @@ struct GroupDetailView: View {
             }
         }
         .onAppear {
-            addGroupCount()
+            
         }
     }
 }
@@ -258,19 +258,19 @@ extension GroupDetailView {
             })
     }
     
-    func addGroupCount() {
-        let parameters: Parameters = [
-            "user_id": settingStorage.userID,
-            "ip": "127.0.0.1",
-            "page": "/API/test/manage_group/\(group.id)"
-        ]
-        let url = addGroupCountUrl
-        let publisher: DataResponsePublisher<Result> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
-        self.cancellable = publisher
-            .sink(receiveValue: { (values) in
-                print(values.value?.result ?? "")
-            })
-    }
+//    func addGroupCount() {
+//        let parameters: Parameters = [
+//            "user_id": settingStorage.userID,
+//            "ip": "127.0.0.1",
+//            "page": "/API/test/manage_group/\(group.id)"
+//        ]
+//        let url = addGroupCountUrl
+//        let publisher: DataResponsePublisher<Result> = NetworkConnector().getDataPublisherDecodable(url: url, para: parameters, addLogs: true)
+//        self.cancellable = publisher
+//            .sink(receiveValue: { (values) in
+//                print(values.value?.result ?? "")
+//            })
+//    }
 }
 
 struct GroupDetailView_Previews: PreviewProvider {
