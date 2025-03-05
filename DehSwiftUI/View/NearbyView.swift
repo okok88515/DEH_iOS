@@ -242,7 +242,7 @@ extension NearbyView{
             })
         
         // Update UI state based on action
-        showFilterButton = (action == "searchNearbyPOI")
+        showFilterButton = false
         print("[DEBUG] Filter button visibility set to: \(showFilterButton)")
         
         hide_listState = false

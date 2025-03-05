@@ -8,15 +8,24 @@ struct GameMediaAttachment: Codable, Hashable {
     let mediaUrl: String?
     let mediaFormat: Int?
     
+    // Define a local format enum that matches your global one
+    enum AttachmentFormat: Int {
+        case Default = 0
+        case Picture = 1
+        case Voice = 2
+        case Video = 4
+        case Commentary = 8
+    }
+    
     enum CodingKeys: String, CodingKey {
         case mediaUrl
         case mediaFormat
     }
     
-    // Convert backend format to your app's format enum
-    var format: DEH_Mini_II.format {  // Explicitly reference the module
+    // Use the local enum instead of trying to reference the module-specific one
+    var format: AttachmentFormat {
         guard let mediaFormat = mediaFormat else { return .Default }
-        return DEH_Mini_II.format(rawValue: mediaFormat) ?? .Default
+        return AttachmentFormat(rawValue: mediaFormat) ?? .Default
     }
 }
 
@@ -85,10 +94,20 @@ class GamePointModel: Decodable, Hashable, Identifiable {
         guard let urlString = attachment.mediaUrl,
               let url = Foundation.URL(string: urlString) else { return nil }
         
+        // Map the local format to the global format
+        let mappedFormat: format
+        switch attachment.format {
+        case .Default: mappedFormat = .Default
+        case .Picture: mappedFormat = .Picture
+        case .Voice: mappedFormat = .Voice
+        case .Video: mappedFormat = .Video
+        case .Commentary: mappedFormat = .Commentary
+        }
+        
         // Download the data from the URL
         do {
             let (data, _) = try await Foundation.URLSession.shared.data(from: url)
-            return MediaMulti(data: data, format: attachment.format)
+            return MediaMulti(data: data, format: mappedFormat)
         } catch {
             print("Failed to download media: \(error)")
             return nil
