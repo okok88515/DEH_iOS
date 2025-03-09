@@ -14,7 +14,7 @@ struct XOIDetail: View {
     @State private var cancellable2: AnyCancellable?
     @State private var mediaCancellable: [AnyCancellable] = []
     @State private var medias: [MediaMulti] = []
-    @State private var commentary: MediaMulti = MediaMulti(data: Data(), format: .Default)
+    @State private var commentary: MediaMulti?  // Changed to optional
     @State var index = 0
     @State private var showingAlert = false
     @State private var showingShare = false
@@ -82,10 +82,18 @@ struct XOIDetail: View {
                         Text("Voice Commentary")
                             .foregroundColor(Color.white)
                         Spacer()
-                        commentary.view()
+                        if let commentaryMedia = commentary {
+                            // Use the MediaView instead of direct view() method
+                            MediaView(mediaMulti: commentaryMedia)
+                        } else {
+                            Text("No Commentary").foregroundColor(.gray)
+                        }
                     }
-                    .frame(height: 30.0)
+                    .frame(height: 50.0)  // Increased height for better touch area
                     .background(Color.init(UIColor(rgba:"#24c08c")))
+                    .cornerRadius(8)  // Added corner radius
+                    .padding(.vertical, 4)  // Added padding
+                    
                     Text("View Numbers: " + String(viewNumbers).hidden(viewNumbers == -1))
                     Text(xoi.detail)
                         .fixedSize(horizontal: false, vertical: true)
@@ -122,6 +130,16 @@ struct XOIDetail: View {
             getViewerNumber()
             getMedia()
         }
+        .onDisappear {
+            // Stop any playing audio when leaving the view
+            if let commentaryMedia = commentary, commentaryMedia.isPlaying {
+                Sounds.stopAudio()
+            }
+            
+            for media in medias where media.isPlaying {
+                Sounds.stopAudio()
+            }
+        }
         .navigationBarItems(trailing: Button {
             self.showingShare = true
         } label: {
@@ -132,7 +150,6 @@ struct XOIDetail: View {
             ActivityViewController(activityItems: [URL(string: "http://deh.csie.ncku.edu.tw/poi_detail/" + String(xoi.id))!])
         }))
     }
-    
     // MARK: - Helper Functions
     func secondImage(_ originalString: String) -> String {
         if self.secondimage != "public" && self.secondimage != "private" {
@@ -164,7 +181,8 @@ struct XOIDetail: View {
             } else {
                 PagingView(index: $index.animation(), maxIndex: medias.count - 1) {
                     ForEach(self.medias, id: \.data) { singleMedia in
-                        singleMedia.view()
+                        // Use the MediaView instead of direct view() method
+                        MediaView(mediaMulti: singleMedia)
                             .onAppear {
                                 print("[DEBUG] Rendering media with format \(singleMedia.mediaFormat.rawValue), data size: \(singleMedia.data.count)")
                             }
@@ -218,11 +236,6 @@ struct XOIDetail: View {
             
             if media.mediaFormat == 0 || media.mediaUrl.isEmpty {
                 print("[DEBUG] Skipping invalid media: format=\(media.mediaFormat), url=\(media.mediaUrl)")
-                medias = [MediaMulti(data: UIImage(imageLiteralResourceName: "none").pngData() ?? Data(), format: .Picture)]
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    print("[DEBUG] Set default 'none' image for invalid media and marked loading complete")
-                }
                 continue
             }
             
@@ -245,7 +258,8 @@ struct XOIDetail: View {
                                     print("[DEBUG] Invalid image data from \(url)")
                                     self.medias.append(MediaMulti(data: UIImage(imageLiteralResourceName: "none").pngData() ?? Data(), format: .Picture))
                                 } else {
-                                    self.medias.append(MediaMulti(data: data, format: mediaFormat))
+                                    let mediaItem = MediaMulti(data: data, format: mediaFormat)
+                                    self.medias.append(mediaItem)
                                     print("[DEBUG] Added media with format \(mediaFormat.rawValue), size \(data.count) bytes")
                                 }
                             case .Default:
@@ -261,8 +275,11 @@ struct XOIDetail: View {
                         self.medias.append(MediaMulti(data: UIImage(imageLiteralResourceName: "none").pngData() ?? Data(), format: .Picture))
                     }
                     
-                    if self.medias.count + (self.commentary.mediaFormat != .Default ? 1 : 0) == self.xoi.mediaSet.count {
-                        print("[DEBUG] All media items processed, medias count: \(self.medias.count), commentary set: \(self.commentary.mediaFormat != .Default)")
+                    let expectedMediaCount = self.xoi.mediaSet.filter { $0.mediaFormat != 0 && !$0.mediaUrl.isEmpty }.count
+                    let currentCount = self.medias.count + (self.commentary != nil ? 1 : 0)
+                    
+                    if currentCount >= expectedMediaCount {
+                        print("[DEBUG] All media items processed, medias count: \(self.medias.count), commentary set: \(self.commentary != nil)")
                         self.isLoading = false
                     }
                 })

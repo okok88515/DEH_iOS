@@ -8,6 +8,7 @@
 
 import Foundation
 import AVFoundation
+
 class Sounds {
     static var audioPlayer: AVAudioPlayer?
     var audioRecoder: AVAudioRecorder?
@@ -46,6 +47,48 @@ class Sounds {
         } catch {
             print("❌ Error playing sound data: \(error.localizedDescription)")
         }
+    }
+    
+    // New method for controlled audio playback
+    static func playAudioWithState(soundData: Data) -> Bool {
+        do {
+            // Stop any currently playing audio
+            audioPlayer?.stop()
+            
+            print("📊 Audio data size for playback: \(soundData.count) bytes")
+            
+            // Configure audio session for playback
+            try AVAudioSession.sharedInstance().setCategory(.playback)
+            try AVAudioSession.sharedInstance().setActive(true)
+            
+            audioPlayer = try AVAudioPlayer(data: soundData)
+            audioPlayer?.prepareToPlay()
+            audioPlayer?.play()
+            
+            print("▶️ Started audio playback")
+            return true
+        } catch {
+            print("❌ Error playing sound data: \(error.localizedDescription)")
+            return false
+        }
+    }
+    
+    // New method to stop audio playback
+    static func stopAudio() {
+        audioPlayer?.stop()
+        print("⏹️ Stopped audio playback")
+        
+        // Reset audio session
+        do {
+            try AVAudioSession.sharedInstance().setActive(false)
+        } catch {
+            print("❌ Error resetting audio session: \(error.localizedDescription)")
+        }
+    }
+    
+    // New method to check if audio is playing
+    static func isAudioPlaying() -> Bool {
+        return audioPlayer?.isPlaying ?? false
     }
     
     func recordSounds() {
@@ -127,6 +170,51 @@ class Sounds {
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
             print("❌ Error resetting audio session: \(error.localizedDescription)")
+        }
+    }
+}
+// Audio Player Delegate to handle playback completion
+class AudioPlayerDelegate: NSObject, AVAudioPlayerDelegate {
+    var onCompletion: (() -> Void)?
+    
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        if flag {
+            onCompletion?()
+        }
+    }
+}
+
+// Improve Sounds class with audio completion handling
+extension Sounds {
+    // Singleton delegate instance to be reused
+    private static var audioDelegate = AudioPlayerDelegate()
+    
+    // Enhanced version of playAudioWithState that supports completion callback
+    static func playAudioWithStateAndCompletion(soundData: Data, onCompletion: @escaping () -> Void) -> Bool {
+        do {
+            // Stop any currently playing audio
+            audioPlayer?.stop()
+            
+            print("📊 Audio data size for playback: \(soundData.count) bytes")
+            
+            // Configure audio session for playback
+            try AVAudioSession.sharedInstance().setCategory(.playback)
+            try AVAudioSession.sharedInstance().setActive(true)
+            
+            audioPlayer = try AVAudioPlayer(data: soundData)
+            
+            // Set up completion handler
+            audioDelegate.onCompletion = onCompletion
+            audioPlayer?.delegate = audioDelegate
+            
+            audioPlayer?.prepareToPlay()
+            audioPlayer?.play()
+            
+            print("▶️ Started audio playback with completion handler")
+            return true
+        } catch {
+            print("❌ Error playing sound data: \(error.localizedDescription)")
+            return false
         }
     }
 }

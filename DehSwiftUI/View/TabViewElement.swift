@@ -293,37 +293,33 @@ extension TabViewElement {
     }
     
     func actionSheetBuilder(tabItemName: String) -> ActionSheet {
-        print(tabItemName)
-        if (tabItemName == "group") {
-            return ActionSheet(title: Text("Select Search XOIs"), message: Text(""), buttons: [
-                .default(Text("Group POI")) { searchXOIs(action: "searchGroupPOI") },
-                .default(Text("Group LOI")) { searchXOIs(action: "searchGroupLOI") },
-                .default(Text("Group AOI")) { searchXOIs(action: "searchGroupAOI") },
-                .default(Text("Group SOI")) { searchXOIs(action: "searchGroupSOI") },
-                .default(Text("Group My POI")) { searchXOIs(action: "searchGroupMyPOI") },
-                .default(Text("Group My LOI")) { searchXOIs(action: "searchGroupMyLOI") },
-                .default(Text("Group My AOI")) { searchXOIs(action: "searchGroupMyAOI") },
-                .default(Text("Group My SOI")) { searchXOIs(action: "searchGroupMySOI") },
-                .cancel()
-            ])
-        } else if (tabItemName == "region") {
-            return ActionSheet(title: Text("Select Search XOIs"), message: Text(""), buttons: [
-                .default(Text("Region POI")) { searchXOIs(action: "searchRegionPOI") },
-                .default(Text("Region LOI")) { searchXOIs(action: "searchRegionLOI") },
-                .default(Text("Region AOI")) { searchXOIs(action: "searchRegionAOI") },
-                .default(Text("Region SOI")) { searchXOIs(action: "searchRegionSOI") },
-                .cancel()
-            ])
-        } else {
-            return ActionSheet(title: Text("Select Search XOIs"), message: Text(""), buttons: [
-                .default(Text("POI")) { searchXOIs(action: "searchMyPOI") },
-                .default(Text("LOI")) { searchXOIs(action: "searchMyLOI") },
-                .default(Text("AOI")) { searchXOIs(action: "searchMyAOI") },
-                .default(Text("SOI")) { searchXOIs(action: "searchMySOI") },
-                .cancel()
-            ])
+            print(tabItemName)
+            if (tabItemName == "group") {
+                return ActionSheet(title: Text("Select Search XOIs"), message: Text(""), buttons: [
+                    .default(Text("Group POI")) { searchXOIs(action: "searchGroupPOI") },
+                    .default(Text("Group LOI")) { searchXOIs(action: "searchGroupLOI") },
+                    .default(Text("Group AOI")) { searchXOIs(action: "searchGroupAOI") },
+                    .default(Text("Group SOI")) { searchXOIs(action: "searchGroupSOI") },
+                    .cancel()
+                ])
+            } else if (tabItemName == "region") {
+                return ActionSheet(title: Text("Select Search XOIs"), message: Text(""), buttons: [
+                    .default(Text("Region POI")) { searchXOIs(action: "searchRegionPOI") },
+                    .default(Text("Region LOI")) { searchXOIs(action: "searchRegionLOI") },
+                    .default(Text("Region AOI")) { searchXOIs(action: "searchRegionAOI") },
+                    .default(Text("Region SOI")) { searchXOIs(action: "searchRegionSOI") },
+                    .cancel()
+                ])
+            } else {
+                return ActionSheet(title: Text("Select Search XOIs"), message: Text(""), buttons: [
+                    .default(Text("POI")) { searchXOIs(action: "searchMyPOI") },
+                    .default(Text("LOI")) { searchXOIs(action: "searchMyLOI") },
+                    .default(Text("AOI")) { searchXOIs(action: "searchMyAOI") },
+                    .default(Text("SOI")) { searchXOIs(action: "searchMySOI") },
+                    .cancel()
+                ])
+            }
         }
-    }
     
     @ViewBuilder func destinationSelector(xoi: XOI) -> some View {
         switch xoi.xoiCategory {
