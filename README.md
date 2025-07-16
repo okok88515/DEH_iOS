@@ -1,4 +1,33 @@
 # iOS App Development - DEH Mini II
+# DEH iOS App
+
+This iOS application was developed as part of a graduate project at NTU's Digital Humanities Research Center. It enables users to explore cultural heritage sites across Taiwan using a mobile interface.
+
+## Features
+
+- **Cultural Site Browsing**: List and map views of cultural sites.
+- **Location-based Field Selection**: Newly designed "Field" feature to let users explore sites specific to different geographical or thematic fields.
+- **Multilingual Support**: Support for Traditional Chinese and English.
+- **API Integration**: Communicates with a Node.js-based backend server.
+- **Interactive Map**: Tap on pins to access site details.
+
+## Contributions
+
+- Refactored the frontend using **MVVM architecture** for better modularity and maintainability.
+- Improved the **SwiftUI interface** to enhance usability and visual consistency.
+- Designed and implemented a new **Field (場域)** feature to categorize and explore cultural sites by region or theme.
+- Maintained and debugged the Node.js API for backend integration.
+
+## Tech Stack
+
+- **Frontend**: SwiftUI, MapKit
+- **Architecture**: MVVM
+- **Backend**: Node.js + SQL Server
+- **Version Control**: Git (private repo hosted in lab)
+
+## About the Project
+
+The DEH iOS app is part of the broader [DEH Mini Platform] and was developed in collaboration with researchers to support digital exploration of Taiwan’s cultural heritage.
 
 DEH Mini 是一款 iOS 應用程式，提供文化景點探索與路線導覽服務。此應用是 DEH 平台（Demodulation and Encoding Heritage）的延伸，目標為推廣在地文化脈絡，結合地圖、故事、場域與小遊戲等多元內容。
 
