@@ -59,6 +59,19 @@ struct RegionView: View {
 }
 
 extension RegionView {
+    /// 實際給 View 用的版本
+    func filteredRegions() -> [Field] {
+        Self.filterRegions(regionList: regionList, searchText: searchText)
+    }
+
+    /// 純函式版本，方便 unit test
+    static func filterRegions(regionList: [Field], searchText: String) -> [Field] {
+        guard !searchText.isEmpty else {
+            return regionList
+        }
+        return regionList.filter { $0.name.hasPrefix(searchText) }
+    }
+
     func getFieldList() {
         let url = FieldGetAllListUrl
         print("[API] Making request to: \(url)")

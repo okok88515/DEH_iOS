@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -459,8 +459,19 @@
 		E1FAC374278C1AEA008F312F /* PickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FAC36E278C1AEA008F312F /* PickerView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		39AE55802EC9D15700B349D6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 59A65907257611020038AD61 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E1EA949D27B102580083118F;
+			remoteInfo = "DEH Mini II";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		10CC8929295490E10012CB78 /* MapViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewModel.swift; sourceTree = "<group>"; };
+		39AE557C2EC9D15700B349D6 /* DehMiniUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DehMiniUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5590AFF32CD0DE00005E114D /* GameViewModelCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModelCache.swift; sourceTree = "<group>"; };
 		5908F03F26E8949600931C01 /* GameMemberPointView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameMemberPointView.swift; sourceTree = "<group>"; };
 		5908F04126E8ABFE00931C01 /* GamePointModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamePointModel.swift; sourceTree = "<group>"; };
@@ -554,7 +565,18 @@
 		E1FAC36E278C1AEA008F312F /* PickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		39AE557D2EC9D15700B349D6 /* DehMiniUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = DehMiniUITests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		39AE55792EC9D15700B349D6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7332DD062758D5C500E0C19A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -606,6 +628,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		39AE55772EC9CE4D00B349D6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		5961A0CC25777DEC0022CD72 /* Supporting Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -620,6 +649,7 @@
 			isa = PBXGroup;
 			children = (
 				59A65911257611020038AD61 /* DehSwiftUI */,
+				39AE557D2EC9D15700B349D6 /* DehMiniUITests */,
 				59A65910257611020038AD61 /* Products */,
 				7332DCC42758D57600E0C19A /* DehSwiftUI copy-Info.plist */,
 				7332DD112758D5C500E0C19A /* DEH Lite copy-Info.plist */,
@@ -628,6 +658,7 @@
 				7332DDF82758D63400E0C19A /* SDC-DEH Lite copy-Info.plist */,
 				7332DE452758D9C600E0C19A /* DEH Mini II copy-Info.plist */,
 				E1EA94EB27B102590083118F /* DEH Micro copy-Info.plist */,
+				39AE55772EC9CE4D00B349D6 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -640,6 +671,7 @@
 				7332DDF72758D63400E0C19A /* SDC-DEH Micro II.app */,
 				7332DE442758D9C600E0C19A /* DEH Lite II.app */,
 				E1EA94EA27B102580083118F /* DEH Mini II.app */,
+				39AE557C2EC9D15700B349D6 /* DehMiniUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -823,6 +855,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		39AE557B2EC9D15700B349D6 /* DehMiniUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 39AE55822EC9D15700B349D6 /* Build configuration list for PBXNativeTarget "DehMiniUITests" */;
+			buildPhases = (
+				39AE55782EC9D15700B349D6 /* Sources */,
+				39AE55792EC9D15700B349D6 /* Frameworks */,
+				39AE557A2EC9D15700B349D6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				39AE55812EC9D15700B349D6 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				39AE557D2EC9D15700B349D6 /* DehMiniUITests */,
+			);
+			name = DehMiniUITests;
+			packageProductDependencies = (
+			);
+			productName = DehMiniUITests;
+			productReference = 39AE557C2EC9D15700B349D6 /* DehMiniUITests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		7332DCC52758D5C500E0C19A /* DEH Micro II */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7332DD0D2758D5C500E0C19A /* Build configuration list for PBXNativeTarget "DEH Micro II" */;
@@ -949,9 +1004,15 @@
 		59A65907257611020038AD61 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1130;
+				LastSwiftUpdateCheck = 2610;
 				LastUpgradeCheck = 1220;
 				ORGANIZATIONNAME = mmlab;
+				TargetAttributes = {
+					39AE557B2EC9D15700B349D6 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = E1EA949D27B102580083118F;
+					};
+				};
 			};
 			buildConfigurationList = 59A6590A257611020038AD61 /* Build configuration list for PBXProject "DehSwiftUI" */;
 			compatibilityVersion = "Xcode 9.3";
@@ -978,11 +1039,19 @@
 				7332DD122758D5C600E0C19A /* SDC-DEH Mini II */,
 				7332DD5F2758D62500E0C19A /* SDC-DEH Lite II */,
 				7332DDAC2758D63400E0C19A /* SDC-DEH Micro II */,
+				39AE557B2EC9D15700B349D6 /* DehMiniUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		39AE557A2EC9D15700B349D6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7332DD082758D5C500E0C19A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1052,6 +1121,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		39AE55782EC9D15700B349D6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7332DCC82758D5C500E0C19A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1516,6 +1592,14 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		39AE55812EC9D15700B349D6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E1EA949D27B102580083118F /* DEH Mini II */;
+			targetProxy = 39AE55802EC9D15700B349D6 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin PBXVariantGroup section */
 		59A6591D257611040038AD61 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
@@ -1540,6 +1624,63 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		39AE55832EC9D15700B349D6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = mmlab.DehMiniUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DEH Mini II.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DEH Mini II";
+			};
+			name = Debug;
+		};
+		39AE55842EC9D15700B349D6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = mmlab.DehMiniUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DEH Mini II.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DEH Mini II";
+			};
+			name = Release;
+		};
 		59A65921257611040038AD61 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1969,6 +2110,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		39AE55822EC9D15700B349D6 /* Build configuration list for PBXNativeTarget "DehMiniUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				39AE55832EC9D15700B349D6 /* Debug */,
+				39AE55842EC9D15700B349D6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		59A6590A257611020038AD61 /* Build configuration list for PBXProject "DehSwiftUI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
