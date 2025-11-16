@@ -2,11 +2,11 @@ name: iOS CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     tags:
       - 'v*'          # 打 v1.0.0 之類的 tag 會觸發 CD
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
 
 jobs:
   build-and-test:
