@@ -25,7 +25,7 @@ jobs:
           xcodebuild \
             -project DehSwiftUI.xcodeproj \
             -scheme "DEH Mini II" \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "platform=iOS" \
             clean test
 
   deploy-testflight:
