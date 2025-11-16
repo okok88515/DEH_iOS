@@ -12,21 +12,21 @@ platform :ios do
 
   desc "Build and upload to TestFlight"
   lane :beta_deh_mini do
-  app_store_connect_api_key(
-    key_id: ENV['APP_STORE_CONNECT_API_KEY_ID'],
-    issuer_id: ENV['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
-    key_content: ENV['APP_STORE_CONNECT_API_KEY_CONTENT'],
-    is_key_content_base64: true
-  )
+    app_store_connect_api_key(
+        key_id: ENV['APP_STORE_CONNECT_API_KEY_ID'],
+        issuer_id: ENV['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
+        key_content: ENV['APP_STORE_CONNECT_API_KEY_CONTENT'],
+        is_key_content_base64: true
+    )
 
-  build_app(
-    scheme: "DEH Mini II",                # 👈 指定要打包哪一個 target 的 scheme
-    project: "DehSwiftUI.xcodeproj",
-    export_method: "app-store"
-  )
+    build_app(
+        scheme: "DEH Mini II",                # 👈 指定要打包哪一個 target 的 scheme
+        project: "DehSwiftUI.xcodeproj",
+        export_method: "app-store"
+    )
 
-  upload_to_testflight(
-    app_identifier: "你的 DEH Mini II bundle id"  # e.g. "tw.edu.xxx.dehmini2"
-  )
+    upload_to_testflight(
+        app_identifier: "你的 DEH Mini II bundle id"  # e.g. "tw.edu.xxx.dehmini2"
+    )
   end
 end

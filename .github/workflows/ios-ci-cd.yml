@@ -24,7 +24,7 @@ jobs:
         run: |
           xcodebuild \
             -project DehSwiftUI.xcodeproj \
-            -scheme DehSwiftUI \
+            -scheme "DEH Mini II" \
             -destination 'platform=iOS Simulator,name=iPhone 15,OS=18.1' \
             clean test
 
@@ -51,4 +51,4 @@ jobs:
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
         run: |
-          fastlane beta
+          fastlane beta_deh_mini
