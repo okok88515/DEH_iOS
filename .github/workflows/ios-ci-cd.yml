@@ -38,15 +38,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode.app
-      
-      - name: Setup match SSH key
+      - name: Setup SSH for fastlane match
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.MATCH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          echo "${{ secrets.MATCH_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          printf "Host github.com\n  StrictHostKeyChecking no\n" >> ~/.ssh/config
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
 
       - name: Install fastlane
         run: sudo gem install fastlane -NV

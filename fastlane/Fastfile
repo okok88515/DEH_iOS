@@ -19,6 +19,13 @@ platform :ios do
       is_key_content_base64: true
     )
 
+    # 👇 這步是讓 CI 那台機器拿到 cert + provisioning profile
+    match(
+      type: "appstore",
+      app_identifier: "edu.NCKU.new-deh-mini-II",
+      readonly: true
+    )
+
     build_app(
       scheme: "DEH Mini II",                # 👈 指定要打包哪一個 target 的 scheme
       project: "DehSwiftUI.xcodeproj",
