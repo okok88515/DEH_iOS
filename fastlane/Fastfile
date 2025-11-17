@@ -30,11 +30,7 @@ platform :ios do
       scheme: "DEH Mini II",
       project: "DehSwiftUI.xcodeproj",
       export_method: "app-store",
-      export_options: {
-        provisioningProfiles: {
-          "edu.NCKU.new-deh-mini-II" => "match AppStore edu.NCKU.new-deh-mini-II"
-        }
-      }
+      xcargs: "-allowProvisioningUpdates"
     )
 
     upload_to_testflight(
