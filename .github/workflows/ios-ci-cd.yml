@@ -40,6 +40,13 @@ jobs:
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode.app
+      
+      - name: Setup match SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.MATCH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
 
       - name: Install fastlane
         run: sudo gem install fastlane -NV
