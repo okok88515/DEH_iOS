@@ -27,9 +27,14 @@ platform :ios do
     )
 
     build_app(
-      scheme: "DEH Mini II",                # 👈 指定要打包哪一個 target 的 scheme
+      scheme: "DEH Mini II",
       project: "DehSwiftUI.xcodeproj",
-      export_method: "app-store"
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          "edu.NCKU.new-deh-mini-II" => "match AppStore edu.NCKU.new-deh-mini-II"
+        }
+      }
     )
 
     upload_to_testflight(
